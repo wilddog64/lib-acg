@@ -350,11 +350,15 @@ async function extractCredentials() {
       if (!sandboxEntryReady && retryPathname.includes('cloud-sandboxes') && !page.url().includes('cloud-sandboxes')) {
         console.error(`INFO: Sandbox route not active (${page.url()}) — retrying via Hands-on route...`);
         await page.goto('https://app.pluralsight.com/hands-on', { waitUntil: 'domcontentloaded', timeout: 60000 });
+        // Give the Pluralsight SPA router time to mount the /hands-on route before
+        // navigating away — domcontentloaded fires before the React tree settles.
         await page.waitForTimeout(3000);
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
         sandboxEntryReady = await _waitForSandboxEntrySoft(30000);
       }
       if (!sandboxEntryReady) {
+        // The sandbox button/credentials did not appear — proceed anyway and let the
+        // button-click block below surface the real failure with more context.
         console.error('WARN: Timed out waiting for sandbox buttons or credentials — proceeding anyway');
       }
 
