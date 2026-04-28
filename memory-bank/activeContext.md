@@ -11,7 +11,7 @@
 - [x] **Phase 3** — COMPLETE. Migrated acg.sh, gcp.sh, playwright scripts, vars.sh, and
       extracted _browser_launch + _cdp_ensure_acg_session into scripts/lib/cdp.sh.
       Source commit on main: `5c0e8e2`.
-- [x] **ACG credential extraction misses visible sandbox** — FIXED pending PR. Root cause: legacy AWS sandbox URL, too-narrow CDP reuse, missing `/hands-on` retry after Pluralsight bounces to `/library/`, and brittle macOS `open -a` launch. Fix branch updates `scripts/vars.sh`, `scripts/lib/cdp.sh`, `scripts/plugins/acg.sh`, and `playwright/acg_credentials.js`. Checks passed: `npm run check`, `node --check playwright/acg_credentials.js`, and `shellcheck scripts/**/*.sh`. Bug: `docs/bugs/2026-04-28-acg-credentials-cdp-context-miss.md`.
+- [x] **ACG credential extraction misses visible sandbox** — FIXED in PR #2 (`https://github.com/wilddog64/lib-acg/pull/2`). Root cause: legacy AWS sandbox URL, too-narrow CDP reuse, missing `/hands-on` retry after Pluralsight bounces to `/library/`, and brittle macOS `open -a` launch. Fix branch updates `scripts/vars.sh`, `scripts/lib/cdp.sh`, `scripts/plugins/acg.sh`, and `playwright/acg_credentials.js`. Local checks passed: `npm run check`, `node --check playwright/acg_credentials.js`, and `shellcheck scripts/**/*.sh`. GitHub Actions CI passed on commit `7c64fb5`. Bug: `docs/bugs/2026-04-28-acg-credentials-cdp-context-miss.md`.
 
 ## Consumed By
 
