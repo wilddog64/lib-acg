@@ -40,6 +40,7 @@ ERROR: Antigravity browser not ready on port 9222 after 30s — launch Antigravi
 - CDP browser context is reused even when no Pluralsight tab exists yet.
 - If sandbox controls are not visible and the current page is not a sandbox route, the script retries through `/hands-on` and then returns to the sandbox URL.
 - Copilot review follow-up replaced the fixed `/hands-on` retry sleep with a DOM readiness/link/text condition and clarified the intentional fallthrough when sandbox controls still do not appear.
+- Copilot inline review follow-up replaced k3d-manager-specific fallback paste commands with the repo-local `source scripts/plugins/acg.sh && pbpaste | acg_import_credentials` command.
 - `acg_get_credentials` prints sanitized Playwright diagnostics on failure.
 - macOS CDP launch prefers the direct Chrome executable and logs Chrome stderr/stdout to `~/.local/share/k3d-manager/chrome-cdp.log`.
 

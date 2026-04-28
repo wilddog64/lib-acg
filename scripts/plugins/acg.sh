@@ -303,7 +303,7 @@ HELP
       -e 's/(AWS_SECRET_ACCESS_KEY=).*/\1[redacted]/' \
       -e 's/(AWS_SESSION_TOKEN=).*/\1[redacted]/' >&2
     _info "[acg] Copy the credentials block from the Pluralsight sandbox page, then run:"
-    _info "[acg]   pbpaste | ./scripts/k3d-manager acg_import_credentials"
+    _info "[acg]   source scripts/plugins/acg.sh && pbpaste | acg_import_credentials"
     return 1
   fi
 
@@ -319,7 +319,7 @@ HELP
       -e 's/(AWS_SECRET_ACCESS_KEY=).*/\1[redacted]/' \
       -e 's/(AWS_SESSION_TOKEN=).*/\1[redacted]/' >&2
     _info "[acg] Copy the credentials block from the Pluralsight sandbox page, then run:"
-    _info "[acg]   pbpaste | ./scripts/k3d-manager acg_import_credentials"
+    _info "[acg]   source scripts/plugins/acg.sh && pbpaste | acg_import_credentials"
     return 1
   fi
 
