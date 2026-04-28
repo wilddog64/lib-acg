@@ -350,9 +350,11 @@ async function extractCredentials() {
       if (!sandboxEntryReady && retryPathname.includes('cloud-sandboxes') && !page.url().includes('cloud-sandboxes')) {
         console.error(`INFO: Sandbox route not active (${page.url()}) — retrying via Hands-on route...`);
         await page.goto('https://app.pluralsight.com/hands-on', { waitUntil: 'domcontentloaded', timeout: 60000 });
-        // Give the Pluralsight SPA router time to mount the /hands-on route before
-        // navigating away — domcontentloaded fires before the React tree settles.
-        await page.waitForTimeout(3000);
+        await page.waitForFunction(() => {
+          return document.readyState === 'complete' ||
+            Boolean(document.querySelector('a[href*="cloud-sandboxes"]')) ||
+            document.body.innerText.includes('Cloud Sandboxes');
+        }, { timeout: 15000 }).catch(() => console.error('WARN: Hands-on route did not settle before sandbox retry'));
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
         sandboxEntryReady = await _waitForSandboxEntrySoft(30000);
       }
