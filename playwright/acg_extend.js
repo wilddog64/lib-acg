@@ -27,9 +27,14 @@ async function _waitForVisibleExtendButton(page, selectors, timeoutMs, phaseLabe
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() <= deadline) {
+    const remainingMs = Math.max(0, deadline - Date.now());
+    if (remainingMs === 0 && timeoutMs > 0) {
+      break;
+    }
+
     for (const selector of selectors) {
       const btn = page.locator(selector).first();
-      const visible = await btn.isVisible({ timeout: 1000 }).catch(() => false);
+      const visible = await btn.isVisible({ timeout: remainingMs }).catch(() => false);
       if (visible) {
         console.error(`INFO: Found extend button${phaseLabel ? ` (${phaseLabel})` : ''} with selector: ${selector}`);
         return btn;
@@ -44,11 +49,18 @@ async function _waitForVisibleExtendButton(page, selectors, timeoutMs, phaseLabe
   return null;
 }
 
+function _sanitizePhaseLabel(phaseLabel) {
+  return phaseLabel
+    ? phaseLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    : '';
+}
+
 async function _captureExtendFailure(page, phaseLabel) {
   const diagnosticsDir = path.join(os.homedir(), '.local', 'share', 'k3d-manager');
+  const safePhaseLabel = _sanitizePhaseLabel(phaseLabel);
   const screenshotPath = path.join(
     diagnosticsDir,
-    `acg-extend-failure-${Date.now()}${phaseLabel ? `-${phaseLabel}` : ''}.png`
+    `acg-extend-failure-${Date.now()}${safePhaseLabel ? `-${safePhaseLabel}` : ''}.png`
   );
 
   try {

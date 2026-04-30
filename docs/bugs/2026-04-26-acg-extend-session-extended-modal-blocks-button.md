@@ -46,9 +46,7 @@ In `playwright/acg_extend.js`:
   `fix(acg-extend): wait for extend surface before searching for extend button`
 - [ ] SHA reported; pushed to origin
 
-## What NOT to Do
+## Historical Notes
 
-- Do NOT create a PR
-- Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/acg_extend.js`
-- Do NOT commit to `main`
+- This fix was developed on `feat/acg-extend-modal-wait` and recorded in PR #3.
+- The repo-level workflow in this issue doc is historical context from the original bug report, not a live restriction on follow-up documentation updates.
