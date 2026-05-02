@@ -17,6 +17,13 @@
 - [x] **acg_credentials timeout values** — FIXED (`315e9fe`). `playwright/acg_credentials.js` now passes `null` to `_waitForSandboxEntry`, waits up to 180s for credentials, and extends the non-first-run overall timeout to 300s. Spec: `docs/plans/bugfix-acg-credentials-timeout-values.md`.
 - [x] **acg_credentials provision timeout** — FIXED (`9f6bf71`). `playwright/acg_credentials.js` now uses locator polling for credentials up to 420s and extends the non-first-run overall timeout to 660s. Spec: `docs/bugs/2026-05-02-acg-credentials-provision-timeout.md`.
 
+## Open: CDP empty-contexts fix (ASSIGNED TO CODEX)
+Branch: `fix/acg-credentials-cdp-empty-contexts`
+Bug: `docs/bugs/2026-05-02-acg-credentials-cdp-empty-contexts.md`
+Root cause: `_cdpBrowser.contexts()` returns `[]` when Chrome has no open tabs → falls
+through to `launchPersistentContext` which fails (profile locked by CDP Chrome process).
+Fix: open a blank tab via `http.get(.../json/new)` when contexts is empty, then re-query.
+
 ## Consumed By
 
 - `k3d-manager` — will pull via git subtree at `scripts/lib/acg/` (Phase 4)
