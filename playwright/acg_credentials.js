@@ -377,7 +377,7 @@ async function extractCredentials() {
           }
           await page.waitForTimeout(2000);
         }
-        throw new Error('page.waitForFunction: Timeout 420000ms exceeded.');
+        throw new Error('Locator polling timed out after 420000ms waiting for input[aria-label="Copyable input"] to have a non-empty value.');
       };
 
       // Pattern 1: Direct "Start Sandbox" button (in a modal or panel)
@@ -441,7 +441,8 @@ async function extractCredentials() {
   }
 }
 
-const OVERALL_TIMEOUT_MS = 660000;
+// 300s (waitForURL patient bridge) + 420s (credential polling) + 60s buffer
+const OVERALL_TIMEOUT_MS = 780000;
 let _timeoutHandle;
 const _timeoutPromise = new Promise((_, reject) => {
   _timeoutHandle = setTimeout(
