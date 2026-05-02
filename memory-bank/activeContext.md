@@ -1,9 +1,9 @@
 # Active Context — lib-acg
 
-## Current Branch: `fix/acg-credentials-cdp-reconnect`
+## Current Branch: `bug/chrome-singleton-lock-collision`
 
 **Repo created:** 2026-04-25
-**Status:** PR #7 merged (`027b5765`). New bug: `_cdpBrowser.contexts()` doesn't update after blank tab — need disconnect+reconnect. Branch: `fix/acg-credentials-cdp-reconnect`.
+**Status:** PR #7 merged (`027b5765`). New bug: Chrome `SingletonLock` collision blocks automation launch. Branch: `bug/chrome-singleton-lock-collision`.
 
 ## Phase Status
 
@@ -33,6 +33,12 @@ the default context from `Target.targetCreated` events post-connect. Falls throu
 `launchPersistentContext`; profile still locked by CDP Chrome → Chrome exits
 (`[pid=N] <gracefully close end>`).
 Fix: disconnect + reconnect after blank tab so fresh `connectOverCDP` sees the new target.
+
+## Open: Chrome SingletonLock collision (OPEN)
+Branch: `bug/chrome-singleton-lock-collision`
+Bug: `docs/bugs/2026-05-02-chrome-singleton-lock-collision.md`
+Chrome fails to launch because a previous instance or the background agent is holding
+the profile lock. The repro and required fix are documented in the bug note.
 
 ## Consumed By
 
