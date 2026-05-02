@@ -365,15 +365,19 @@ async function extractCredentials() {
       }
 
       const _waitForCredentials = async () => {
-        console.error('INFO: Waiting for credentials to populate (up to 180s)...');
-        await page.waitForFunction(
-          () => {
-            const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
-            return inputs.length > 0 && inputs[0].value.trim().length > 0;
-          },
-          null,
-          { timeout: 180000 }
-        );
+        console.error('INFO: Waiting for credentials to populate (up to 420s)...');
+        const deadline = Date.now() + 420000;
+        while (Date.now() < deadline) {
+          const inputs = page.locator('input[aria-label="Copyable input"]');
+          if (await inputs.count() > 0) {
+            const value = await inputs.first().inputValue().catch(() => '');
+            if (value.trim().length > 0) {
+              return;
+            }
+          }
+          await page.waitForTimeout(2000);
+        }
+        throw new Error('page.waitForFunction: Timeout 420000ms exceeded.');
       };
 
       // Pattern 1: Direct "Start Sandbox" button (in a modal or panel)
@@ -437,7 +441,7 @@ async function extractCredentials() {
   }
 }
 
-const OVERALL_TIMEOUT_MS = 300000;
+const OVERALL_TIMEOUT_MS = 660000;
 let _timeoutHandle;
 const _timeoutPromise = new Promise((_, reject) => {
   _timeoutHandle = setTimeout(
