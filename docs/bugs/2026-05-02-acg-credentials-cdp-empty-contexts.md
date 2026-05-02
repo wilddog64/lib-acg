@@ -97,8 +97,12 @@ const path = require('path');
         console.error('INFO: CDP connected but no open contexts — opening blank tab to expose profile context.');
         try {
           await new Promise((resolve, reject) => {
-            const req = http.get(`http://${CDP_HOST}:${CDP_PORT}/json/new`, res => { res.resume(); resolve(); });
+            const req = http.request(
+              { hostname: CDP_HOST, port: CDP_PORT, path: '/json/new', method: 'PUT' },
+              res => { res.resume(); resolve(); }
+            );
             req.on('error', reject);
+            req.end();
           });
           await new Promise(r => setTimeout(r, 500));
           const _refreshedContexts = _cdpBrowser.contexts();
@@ -128,7 +132,7 @@ const path = require('path');
 
 - `node --check playwright/acg_credentials.js` — zero errors
 - `shellcheck -S warning scripts/plugins/acg.sh scripts/lib/cdp.sh scripts/vars.sh` — zero new warnings
-- Do NOT modify any file other than `playwright/acg_credentials.js`
+- Code change: `playwright/acg_credentials.js` only; memory-bank updates are also required (see DoD)
 
 ---
 
