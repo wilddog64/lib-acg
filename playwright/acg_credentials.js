@@ -203,8 +203,10 @@ async function extractCredentials() {
             console.error('INFO: Default Chrome context now accessible after blank tab.');
           }
         } catch { /* fall through if blank tab fails */ }
-        try { await _cdpBrowser.disconnect(); } catch {}
-        _cdpBrowser = null;
+        if (!browserContext) {
+          try { await _cdpBrowser.disconnect(); } catch {}
+          _cdpBrowser = null;
+        }
       }
     } catch {
       _cdpBrowser = null;
