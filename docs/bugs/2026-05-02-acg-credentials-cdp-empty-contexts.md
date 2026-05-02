@@ -6,6 +6,14 @@
 
 ---
 
+## Before You Start
+
+1. `git pull origin fix/acg-credentials-cdp-empty-contexts` in the lib-acg repo
+2. Read `memory-bank/activeContext.md` and `memory-bank/progress.md`
+3. Read `playwright/acg_credentials.js` in full — understand the CDP connect block (lines ~168–200) before touching anything
+
+---
+
 ## Problem
 
 `make up` fails with:
