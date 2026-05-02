@@ -59,7 +59,7 @@ context from a disconnected browser — the fix does not work.
 ## Rules
 
 - `node --check playwright/acg_credentials.js` — zero errors
-- Do NOT modify any file other than `playwright/acg_credentials.js`
+- Code change: `playwright/acg_credentials.js` only; memory-bank updates are also required (see DoD)
 
 ---
 
@@ -81,6 +81,6 @@ fix(acg): guard CDP disconnect behind missing browserContext check
 
 - Do NOT create a PR
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/acg_credentials.js`
+- Do NOT modify any code file other than `playwright/acg_credentials.js`
 - Do NOT commit to `main` — work on `fix/acg-credentials-cdp-empty-contexts`
 - Do NOT change any other part of the file — this is a 3-line insertion only

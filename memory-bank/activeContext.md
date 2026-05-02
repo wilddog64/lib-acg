@@ -23,7 +23,7 @@ Bug: `docs/bugs/2026-05-02-acg-credentials-cdp-empty-contexts.md`
 Commit: `d0603bd`
 Root cause: `_cdpBrowser.contexts()` returns `[]` when Chrome has no open tabs → falls
 through to `launchPersistentContext` which fails (profile locked by CDP Chrome process).
-Fix: open a blank tab via `http.get(.../json/new)` when contexts is empty, then re-query.
+Fix: open a blank tab via `http.request({method:'PUT'}, .../json/new)` when contexts is empty, then re-query.
 
 ## Consumed By
 
