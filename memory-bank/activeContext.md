@@ -23,9 +23,10 @@
 - Retro: `docs/retro/2026-05-02-pr7-cdp-empty-contexts-retrospective.md`
 - enforce_admins: restored on main
 
-## Open: CDP reconnect after blank tab
+## Open: CDP reconnect after blank tab (DONE)
 Branch: `fix/acg-credentials-cdp-reconnect`
 Bug: `docs/bugs/2026-05-02-acg-credentials-cdp-reconnect-after-blank-tab.md`
+Commit: `73771ba`
 Root cause: `_cdpBrowser.contexts()` is not live — returns stale `[]` even after PUT
 `/json/new` creates a tab, because Playwright doesn't materialize a BrowserContext for
 the default context from `Target.targetCreated` events post-connect. Falls through to
