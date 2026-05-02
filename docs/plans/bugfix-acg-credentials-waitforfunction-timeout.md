@@ -71,26 +71,34 @@ make up
 
 ## Files Changed
 
+This branch also carries `fix(cdp): correct foundation path — remove extra ../` (`369ef9f`),
+which fixes `scripts/lib/cdp.sh` sourcing `../foundation/...` one level too high. That fix
+predates this spec and is intentionally included in the same PR.
+
 | File | Change |
 |------|--------|
 | `playwright/acg_credentials.js` | Insert `null,` between the page function and `{ timeout: 60000 }` in `_waitForCredentials` |
+| `scripts/lib/cdp.sh` | Remove extra `../` from `_CDP_FOUNDATION` path (pre-existing fix, commit `369ef9f`) |
 
 ---
 
-## Rules
+## Rules (fix commit scope)
+
+The rules below apply to the **fix commit** (`076f65d`) only — not to surrounding documentation,
+CHANGELOG, or memory-bank updates which are expected companion commits on this branch.
 
 - `node --check playwright/acg_credentials.js` — zero errors
-- No other files touched
+- Fix commit touches only `playwright/acg_credentials.js`
 - No `npm install` or dependency changes
 
 ---
 
 ## Definition of Done
 
-- [ ] `node --check playwright/acg_credentials.js` passes
-- [ ] `git diff --stat` shows only `playwright/acg_credentials.js`
-- [ ] Committed and pushed to `fix/acg-credentials-waitforfunction-timeout`
-- [ ] memory-bank updated with commit SHA and task status
+- [x] `node --check playwright/acg_credentials.js` passes
+- [x] Fix commit (`076f65d`) touches only `playwright/acg_credentials.js`
+- [x] Committed and pushed to `fix/acg-credentials-waitforfunction-timeout`
+- [x] memory-bank updated with commit SHA and task status
 
 **Commit message (exact):**
 ```
@@ -101,8 +109,6 @@ fix(acg): pass null arg to waitForFunction so 60s credential timeout is applied
 
 ## What NOT to Do
 
-- Do NOT create a PR
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/acg_credentials.js`
+- Do NOT modify any `waitForFunction` call other than `_waitForCredentials`
 - Do NOT commit to `main` — work on `fix/acg-credentials-waitforfunction-timeout`
-- Do NOT change any other `waitForFunction` calls in the file — scope is exactly `_waitForCredentials`
