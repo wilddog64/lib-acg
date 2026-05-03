@@ -15,9 +15,19 @@ fi
 _CDP_CHROME_CDP_LABEL="${CDP_CHROME_CDP_LABEL:-com.k3d-manager.chrome-cdp}"
 _CDP_CHROME_CDP_PLIST="${CDP_CHROME_CDP_PLIST:-${HOME}/Library/LaunchAgents/${_CDP_CHROME_CDP_LABEL}.plist}"
 
-function _cdp_stop_chrome_cdp_agent() {
+function _cdp_profile_in_use() {
   local _cdp_profile_dir="${PLAYWRIGHT_AUTH_DIR:-${HOME}/.local/share/k3d-manager/profile}"
+  local _profile_arg="--user-data-dir=${_cdp_profile_dir}"
 
+  ps -ax -o command= | awk -v profile="${_profile_arg}" '
+    index($0, profile) && $0 ~ /(Google Chrome|chromium|chrome)/ {
+      found = 1
+    }
+    END { exit(found ? 0 : 1) }
+  '
+}
+
+function _cdp_stop_chrome_cdp_agent() {
   if [[ "$(uname)" != "Darwin" ]]; then
     return 0
   fi
@@ -26,7 +36,7 @@ function _cdp_stop_chrome_cdp_agent() {
     _info "[acg] Stopping Chrome CDP agent before taking over the browser profile..."
     launchctl unload "${_CDP_CHROME_CDP_PLIST}" 2>/dev/null || true
     local _wait_for_exit=0
-    while pgrep -f -- "--user-data-dir=${_cdp_profile_dir}" >/dev/null 2>&1 && [[ ${_wait_for_exit} -lt 5 ]]; do
+    while _cdp_profile_in_use && [[ ${_wait_for_exit} -lt 5 ]]; do
       sleep 1
       _wait_for_exit=$((_wait_for_exit + 1))
     done
@@ -41,7 +51,7 @@ function _cdp_remove_stale_singleton_lock() {
     return 0
   fi
 
-  if pgrep -f -- "--user-data-dir=${_cdp_profile_dir}" >/dev/null 2>&1; then
+  if _cdp_profile_in_use; then
     return 0
   fi
 
