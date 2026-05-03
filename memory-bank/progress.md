@@ -17,5 +17,4 @@
 - [x] **CDP empty-contexts fix** — MERGED PR #7 (`027b5765`). PUT `/json/new` blank tab + disconnect guard. Retro: `docs/retro/2026-05-02-pr7-cdp-empty-contexts-retrospective.md`.
 - [x] **CDP reconnect after blank tab** — DONE (`73771ba`). Branch: `fix/acg-credentials-cdp-reconnect`. Bug: `docs/bugs/2026-05-02-acg-credentials-cdp-reconnect-after-blank-tab.md`. `contexts()` stale after blank tab — disconnect+reconnect required.
 - [x] **Chrome SingletonLock Collision** — FIXED (`b112297`). Chrome fails to launch because a previous instance or the background agent is holding the profile lock. `scripts/lib/cdp.sh` now stops the Chrome CDP launchd agent before taking over the browser profile and uses a robust process-in-use check before removing stale `SingletonLock` files. Spec: `docs/bugs/2026-05-02-chrome-singleton-lock-collision.md`.
-
 - [ ] **BATS tests** — PLANNED. Add tests/lib/cdp.bats for cdp.sh primitives.
