@@ -3,7 +3,7 @@
 ## Current Branch: `bug/chrome-singleton-lock-collision`
 
 **Repo created:** 2026-04-25
-**Status:** Fix committed and pushed (`b112297`). Chrome `SingletonLock` collision blocks automation launch. Branch: `bug/chrome-singleton-lock-collision`.
+**Status:** Fix committed and pushed (`cbd5234`). Chrome `SingletonLock` collision blocks automation launch. Branch: `bug/chrome-singleton-lock-collision`.
 
 ## Phase Status
 
@@ -39,8 +39,8 @@ Branch: `bug/chrome-singleton-lock-collision`
 Bug: `docs/bugs/2026-05-02-chrome-singleton-lock-collision.md`
 Chrome fails to launch because a previous instance or the background agent is holding
 the profile lock. `scripts/lib/cdp.sh` now stops the Chrome CDP launchd agent before
-taking over the browser profile and removes stale `SingletonLock` files when the
-profile is not in use. Commit: `b112297`.
+taking over the browser profile and uses a robust process-in-use check before
+removing stale `SingletonLock` files. Commit: `cbd5234`.
 
 ## Consumed By
 
