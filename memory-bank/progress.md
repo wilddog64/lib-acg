@@ -17,4 +17,7 @@
 - [x] **CDP empty-contexts fix** — MERGED PR #7 (`027b5765`). PUT `/json/new` blank tab + disconnect guard. Retro: `docs/retro/2026-05-02-pr7-cdp-empty-contexts-retrospective.md`.
 - [x] **CDP reconnect after blank tab** — MERGED PR #8 (`30917444`). `contexts()` stale after blank tab — disconnect+reconnect required. Retro: `docs/retro/2026-05-02-pr8-cdp-reconnect-retrospective.md`.
 - [x] **Chrome SingletonLock collision** — MERGED PR #9 (`79a6acdd`). `cdp.sh` stops the chrome-cdp launchd agent + removes stale `SingletonLock` before launching. Post-merge fix: `launchctl bootout` replaces deprecated `launchctl unload`. Retro: `docs/retro/2026-05-03-pr9-chrome-singleton-lock-retrospective.md`.
+- [ ] **_browser_launch dead Linux else-block** — OPEN. Replace 17-line unreachable Linux
+      branch with `_err` one-liner. Spec: `docs/bugs/2026-05-07-browser-launch-linux-dead-code.md`.
+      Branch: `fix/post-merge-pr9-cleanup`.
 - [ ] **BATS tests** — PLANNED. Add tests/lib/cdp.bats for cdp.sh primitives.
