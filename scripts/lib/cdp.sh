@@ -32,9 +32,9 @@ function _cdp_stop_chrome_cdp_agent() {
     return 0
   fi
 
-  if [[ -f "${_CDP_CHROME_CDP_PLIST}" ]] && launchctl list "${_CDP_CHROME_CDP_LABEL}" >/dev/null 2>&1; then
+  if launchctl list "${_CDP_CHROME_CDP_LABEL}" >/dev/null 2>&1; then
     _info "[acg] Stopping Chrome CDP agent before taking over the browser profile..."
-    launchctl unload "${_CDP_CHROME_CDP_PLIST}" 2>/dev/null || true
+    launchctl bootout "gui/$(id -u)/${_CDP_CHROME_CDP_LABEL}" 2>/dev/null || true
     local _wait_for_exit=0
     while _cdp_profile_in_use && [[ ${_wait_for_exit} -lt 5 ]]; do
       sleep 1
