@@ -104,20 +104,20 @@ function _cdp_ensure_acg_session() {
   local gemini_prompt
   gemini_prompt="You are a browser automation agent. Use Playwright (Node.js) to do the following:
 
-  1. Connect to the running Gemini browser via CDP: const browser = await chromium.connectOverCDP('http://localhost:9222');
-  2. Use the first browser context and page (do NOT launch a new browser).
-  3. Navigate to https://app.pluralsight.com/hands-on/playground/cloud-sandboxes and wait for the page to load.
-  4. Check if the user is logged in by looking for user avatar, account menu, or sandbox list elements (e.g. [data-testid='user-menu'], [aria-label='User menu'], or a heading containing 'Cloud Sandboxes').
-  5. If logged in: print ACG_SESSION_OK and exit with code 0.
-  6. If NOT logged in:
-     a. Navigate to https://app.pluralsight.com/id/signin
-     b. Print: ACTION REQUIRED: Please log into Pluralsight in the Gemini browser window, then press Enter to continue.
-     c. Wait for the page URL to no longer contain '/signin' — poll every 5 seconds, timeout after 300 seconds.
-     d. Once URL is no longer '/signin', print ACG_SESSION_OK and exit with code 0.
-     e. If 300 seconds pass without login, print ERROR: Pluralsight login timeout and exit with code 1.
+1. Connect to the running Gemini browser via CDP: const browser = await chromium.connectOverCDP('http://localhost:9222');
+2. Use the first browser context and page (do NOT launch a new browser).
+3. Navigate to https://app.pluralsight.com/hands-on/playground/cloud-sandboxes and wait for the page to load.
+4. Check if the user is logged in by looking for user avatar, account menu, or sandbox list elements (e.g. [data-testid='user-menu'], [aria-label='User menu'], or a heading containing 'Cloud Sandboxes').
+5. If logged in: print ACG_SESSION_OK and exit with code 0.
+6. If NOT logged in:
+   a. Navigate to https://app.pluralsight.com/id/signin
+   b. Print: ACTION REQUIRED: Please log into Pluralsight in the Gemini browser window, then press Enter to continue.
+   c. Wait for the page URL to no longer contain '/signin' — poll every 5 seconds, timeout after 300 seconds.
+   d. Once URL is no longer '/signin', print ACG_SESSION_OK and exit with code 0.
+   e. If 300 seconds pass without login, print ERROR: Pluralsight login timeout and exit with code 1.
 
-  Write the Playwright script to ${HOME}/.gemini/tmp/k3d-manager/ag_acg_session.js, execute with node, print the result.
-  Exit code 1 if session cannot be confirmed."
+Write the Playwright script to ${HOME}/.gemini/tmp/k3d-manager/ag_acg_session.js, execute with node, print the result.
+Exit code 1 if session cannot be confirmed."
 
   _gemini_prompt "$gemini_prompt" --yolo
 }
