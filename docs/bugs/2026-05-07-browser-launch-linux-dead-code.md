@@ -5,6 +5,24 @@
 
 ---
 
+## Before You Start
+
+```bash
+# 1. Confirm you are in the correct repo and on the correct branch
+cd ~/src/gitrepo/personal/lib-acg
+git pull origin fix/post-merge-pr9-cleanup
+git branch --show-current   # must print: fix/post-merge-pr9-cleanup
+
+# 2. Read memory-bank
+cat memory-bank/activeContext.md
+cat memory-bank/progress.md
+
+# 3. Read the target file
+cat -n scripts/lib/cdp.sh
+```
+
+---
+
 ## Problem
 
 `_browser_launch` contains a Linux/non-Darwin `else` block (lines 91–108) that can never
