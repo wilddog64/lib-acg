@@ -3,7 +3,7 @@
 ## Current Branch: `fix/post-merge-pr9-cleanup`
 
 **Repo created:** 2026-04-25
-**Status:** Post-merge cleanup after PR #9. Fixes `launchctl bootout` regression, adds missing retros, corrects stale memory-bank.
+**Status:** Post-merge cleanup after PR #9 complete.
 
 ## Phase Status
 
@@ -29,13 +29,13 @@
       Retro: `docs/retro/2026-05-03-pr9-chrome-singleton-lock-retrospective.md`.
       Post-merge fix: `launchctl bootout` replaces deprecated `launchctl unload`.
 
-## Open: Post-merge PR #9 cleanup + browser-launch dead-code fix (IN PROGRESS)
+## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
 Branch: `fix/post-merge-pr9-cleanup`
 - [x] Fix `launchctl unload` → `launchctl bootout` in `scripts/lib/cdp.sh` (`dc53804`)
 - [x] Add missing retros for PR #7, #8, #9 under `docs/retro/` (`dc53804`)
 - [x] Correct stale memory-bank (activeContext.md + progress.md) (`dc53804`)
-- [ ] Remove dead Linux else-block from `_browser_launch` in `scripts/lib/cdp.sh`
+- [x] Remove dead Linux else-block from `_browser_launch` in `scripts/lib/cdp.sh` (`5f45069`)
       Spec: `docs/bugs/2026-05-07-browser-launch-linux-dead-code.md`
 
 ## Consumed By
