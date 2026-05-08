@@ -13,7 +13,6 @@ if ! declare -f _antigravity_browser_ready >/dev/null 2>&1; then
 fi
 
 _CDP_CHROME_CDP_LABEL="${CDP_CHROME_CDP_LABEL:-com.k3d-manager.chrome-cdp}"
-_CDP_CHROME_CDP_PLIST="${CDP_CHROME_CDP_PLIST:-${HOME}/Library/LaunchAgents/${_CDP_CHROME_CDP_LABEL}.plist}"
 
 function _cdp_profile_in_use() {
   local _cdp_profile_dir="${PLAYWRIGHT_AUTH_DIR:-${HOME}/.local/share/k3d-manager/profile}"
@@ -34,7 +33,7 @@ function _cdp_stop_chrome_cdp_agent() {
 
   if launchctl list "${_CDP_CHROME_CDP_LABEL}" >/dev/null 2>&1; then
     _info "[acg] Stopping Chrome CDP agent before taking over the browser profile..."
-    launchctl bootout "gui/$(id -u)/${_CDP_CHROME_CDP_LABEL}" 2>/dev/null || true
+    launchctl bootout "gui/$(id -u)/${_CDP_CHROME_CDP_LABEL}" || _warn "[acg] launchctl bootout ${_CDP_CHROME_CDP_LABEL} failed — agent may still be running"
     local _wait_for_exit=0
     while _cdp_profile_in_use && [[ ${_wait_for_exit} -lt 5 ]]; do
       sleep 1
