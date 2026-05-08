@@ -98,7 +98,7 @@ No other lines in the function change.
 ## Rules
 
 - `shellcheck -S warning scripts/lib/cdp.sh` — zero new warnings
-- No other files touched
+- Only `scripts/lib/cdp.sh` modified — memory-bank updates are the only other permitted changes
 
 ---
 
@@ -106,7 +106,7 @@ No other lines in the function change.
 
 - [ ] Dead Linux else-block (lines 91–108) replaced with `_err` one-liner
 - [ ] `shellcheck -S warning scripts/lib/cdp.sh` passes with zero new warnings
-- [ ] Diff touches only `scripts/lib/cdp.sh` — no other files modified
+- [ ] Code diff touches only `scripts/lib/cdp.sh` (memory-bank updates expected)
 - [ ] Committed and pushed to `fix/post-merge-pr9-cleanup`
 - [ ] `memory-bank/activeContext.md` and `memory-bank/progress.md` updated with commit SHA
 
