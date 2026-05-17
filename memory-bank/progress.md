@@ -21,3 +21,4 @@
       branch with _err one-liner. Spec: `docs/bugs/2026-05-07-browser-launch-linux-dead-code.md`.
       Branch: `fix/post-merge-pr9-cleanup`.
 - [ ] **BATS tests** — PLANNED. Add tests/lib/cdp.bats for cdp.sh primitives.
+- [x] **Extend Your Session dialog handling + test wrappers** — FIXED (`6ac86f3`). `playwright/acg_credentials.js` now detects the dialog during sandbox entry and credential polling, dismisses it with DOM clicks, and the repo has new `bin/acg-credential-test` and `bin/acg-extend-test` wrappers for direct Playwright runs.
