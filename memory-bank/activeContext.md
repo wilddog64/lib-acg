@@ -1,6 +1,6 @@
 # Active Context — lib-acg
 
-## Current Branch: `fix/post-merge-pr9-cleanup`
+## Current Branch: `fix/acg-credentials-extend-dialog`
 
 **Repo created:** 2026-04-25
 **Status:** Post-merge cleanup after PR #9 complete.
@@ -28,6 +28,14 @@
       Bug: `docs/bugs/2026-05-02-chrome-singleton-lock-collision.md`.
       Retro: `docs/retro/2026-05-03-pr9-chrome-singleton-lock-retrospective.md`.
       Post-merge fix: `launchctl bootout` replaces deprecated `launchctl unload`.
+
+## Done: Extend Your Session dialog handling + test wrappers
+
+Branch: `fix/acg-credentials-extend-dialog`
+- [x] Add `Extend Your Session` dialog detection/dismissal in `playwright/acg_credentials.js`
+- [x] Add `bin/acg-credential-test` and `bin/acg-extend-test`
+- [x] Validate with `node --check playwright/acg_credentials.js`, `node --check playwright/acg_extend.js`, and `shellcheck bin/acg-credential-test bin/acg-extend-test`
+- [x] Commit `6ac86f3` and push to `origin/fix/acg-credentials-extend-dialog`
 
 ## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
