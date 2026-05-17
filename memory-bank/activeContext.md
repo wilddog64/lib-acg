@@ -31,11 +31,10 @@
 
 ## Done: Extend Your Session dialog handling + test wrappers
 
-Branch: `fix/acg-credentials-extend-dialog`
 - [x] Add `Extend Your Session` dialog detection/dismissal in `playwright/acg_credentials.js`
 - [x] Add `bin/acg-credential-test` and `bin/acg-extend-test`
 - [x] Validate with `node --check playwright/acg_credentials.js`, `node --check playwright/acg_extend.js`, and `shellcheck bin/acg-credential-test bin/acg-extend-test`
-- [x] Commit `6ac86f3` and push to `origin/fix/acg-credentials-extend-dialog`
+- [x] Commit `be80fbe` and push to `origin/fix/acg-credentials-extend-dialog`
 
 ## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
