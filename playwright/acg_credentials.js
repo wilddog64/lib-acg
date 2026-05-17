@@ -368,6 +368,52 @@ async function extractCredentials() {
         }
       };
 
+      const _dismissExtendYourSessionDialog = async () => {
+        const _dialogVisible = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some(d => (d.innerText || '').includes('Extend Your Session'))
+        ).catch(() => false);
+        if (!_dialogVisible) return;
+        console.error('INFO: "Extend Your Session" dialog detected — clicking Extend Session via DOM...');
+        await page.evaluate(() => {
+          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+            .find(d => (d.innerText || '').includes('Extend Your Session'));
+          if (!dialog) return;
+          const btn = Array.from(dialog.querySelectorAll('button'))
+            .find(b => (b.textContent || '').trim().includes('Extend Session'));
+          if (btn) btn.click();
+        }).catch(() => {});
+        await page.waitForTimeout(2000);
+        await page.evaluate(() => {
+          const closeBtn = document.querySelector('button[aria-label="close" i]');
+          if (closeBtn) {
+            closeBtn.click();
+            return;
+          }
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          let n;
+          while ((n = walker.nextNode())) {
+            if ((n.nodeValue || '').includes('Your sandbox has been extended.')) {
+              let el = n.parentElement;
+              for (let i = 0; i < 8 && el && el !== document.body; i++, el = el.parentElement) {
+                const buttons = [...el.querySelectorAll('button')];
+                if (buttons.length) {
+                  buttons[buttons.length - 1].click();
+                  return;
+                }
+              }
+              break;
+            }
+          }
+        }).catch(() => {});
+        await page.waitForTimeout(500);
+        await page.waitForFunction(
+          () => !Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some(d => (d.innerText || '').includes('Extend Your Session')),
+          { timeout: 5000 }
+        ).catch(() => console.error('WARN: "Extend Your Session" dialog did not close within 5s — proceeding anyway'));
+      };
+
       let sandboxEntryReady = await _waitForSandboxEntrySoft(30000);
       const retryPathname = (() => {
         try { return new URL(targetUrl).pathname; } catch { return ''; }
@@ -383,6 +429,7 @@ async function extractCredentials() {
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
         sandboxEntryReady = await _waitForSandboxEntrySoft(30000);
       }
+      await _dismissExtendYourSessionDialog();
       if (!sandboxEntryReady) {
         // The sandbox button/credentials did not appear — proceed anyway and let the
         // button-click block below surface the real failure with more context.
@@ -393,6 +440,7 @@ async function extractCredentials() {
         console.error('INFO: Waiting for credentials to populate (up to 420s)...');
         const deadline = Date.now() + 420000;
         while (Date.now() < deadline) {
+          await _dismissExtendYourSessionDialog();
           const inputs = page.locator('input[aria-label="Copyable input"]');
           if (await inputs.count() > 0) {
             const value = await inputs.first().inputValue().catch(() => '');
