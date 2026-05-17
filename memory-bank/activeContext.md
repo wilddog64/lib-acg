@@ -36,6 +36,12 @@
 - [x] Validate with `node --check playwright/acg_credentials.js`, `node --check playwright/acg_extend.js`, and `shellcheck bin/acg-credential-test bin/acg-extend-test`
 - [x] Commit `be80fbe` and push to `origin/fix/acg-credentials-extend-dialog`
 
+## Done: Makefile setup/check/lint targets
+
+- [x] Add root `Makefile` with `setup`, `check`, `lint`, and `help` targets
+- [x] Validate `make help`, `make check`, `make lint`, and `make -n setup`
+- [x] Commit `c5c6d2f` (`chore(makefile): add setup/check/lint targets for local development`) and push to `origin/fix/acg-credentials-extend-dialog`
+
 ## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
 Branch: `fix/post-merge-pr9-cleanup`
