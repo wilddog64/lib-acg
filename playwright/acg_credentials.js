@@ -376,9 +376,26 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — activating tab and pressing Enter on focused close button...');
-        await page.bringToFront();
-        await page.keyboard.press('Enter').catch(() => {});
+        console.error('INFO: "Extend Your Session" dialog detected — clicking close button via native OS event...');
+        const _screenCoords = await page.evaluate(() => {
+          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+            .find(d => (d.innerText || '').includes('Extend Your Session'));
+          if (!dialog) return null;
+          const btn = dialog.querySelector('button');
+          if (!btn) return null;
+          const rect = btn.getBoundingClientRect();
+          const uiH = window.outerHeight - window.innerHeight;
+          return {
+            x: Math.round(window.screenX + rect.left + rect.width / 2),
+            y: Math.round(window.screenY + uiH + rect.top + rect.height / 2),
+          };
+        }).catch(() => null);
+        if (_screenCoords) {
+          require('child_process').execSync(
+            `osascript -e 'tell application "System Events" to click at {${_screenCoords.x}, ${_screenCoords.y}}'`,
+            { stdio: 'ignore' }
+          );
+        }
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
