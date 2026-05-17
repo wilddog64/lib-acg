@@ -376,12 +376,9 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel...');
-        await page.locator('[role="dialog"]')
-          .filter({ hasText: 'Extend Your Session' })
-          .getByRole('button', { name: 'Cancel' })
-          .click({ timeout: 5000 })
-          .catch(e => console.error('WARN: Cancel click error:', e.message));
+        console.error('INFO: "Extend Your Session" dialog detected — activating tab and pressing Enter on focused close button...');
+        await page.bringToFront();
+        await page.keyboard.press('Enter').catch(() => {});
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
