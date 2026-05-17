@@ -383,13 +383,15 @@ async function extractCredentials() {
           if (!dialog) return;
           const btn = Array.from(dialog.querySelectorAll('button'))
             .find(b => (b.textContent || '').trim().includes('Extend Session'));
-          if (btn) btn.click();
+          if (!btn) return;
+          btn.scrollIntoView({ block: 'center' });
+          btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
         }).catch(() => {});
         await page.waitForTimeout(2000);
         await page.evaluate(() => {
           const closeBtn = document.querySelector('button[aria-label="close" i]');
           if (closeBtn) {
-            closeBtn.click();
+            closeBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             return;
           }
           const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -400,7 +402,7 @@ async function extractCredentials() {
               for (let i = 0; i < 8 && el && el !== document.body; i++, el = el.parentElement) {
                 const buttons = [...el.querySelectorAll('button')];
                 if (buttons.length) {
-                  buttons[buttons.length - 1].click();
+                  buttons[buttons.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                   return;
                 }
               }
@@ -409,11 +411,15 @@ async function extractCredentials() {
           }
         }).catch(() => {});
         await page.waitForTimeout(500);
-        await page.waitForFunction(
+        const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session')),
-          { timeout: 5000 }
-        ).catch(() => console.error('WARN: "Extend Your Session" dialog did not close within 5s — proceeding anyway'));
+          { timeout: 10000 }
+        ).then(() => true).catch(() => false);
+        if (!_dialogClosed) {
+          console.error('ERROR: "Extend Your Session" dialog did not close within 10s — aborting to avoid invalid credentials');
+          process.exit(1);
+        }
       };
 
       await _dismissExtendYourSessionDialog();
