@@ -50,6 +50,12 @@
 - [x] Validate `shellcheck -S warning .githooks/pre-commit`
 - [x] Commit `afde6a8` (`chore(repo): add copilot-instructions and pre-commit hook`) and push to `origin/fix/acg-credentials-extend-dialog`
 
+## Done: CI shellcheck for bin/ scripts
+
+- [x] Add `Run shellcheck on bin/ scripts` step to `.github/workflows/ci.yml` before node syntax checks
+- [x] Validate `yamllint .github/workflows/ci.yml`
+- [x] Commit `4f32016` (`chore(ci): add shellcheck step for bin/ scripts`) and push to `origin/fix/acg-credentials-extend-dialog`
+
 ## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
 Branch: `fix/post-merge-pr9-cleanup`
