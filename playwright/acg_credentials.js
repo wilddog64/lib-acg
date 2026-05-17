@@ -377,22 +377,32 @@ async function extractCredentials() {
         ).catch(() => false);
         if (!_dialogVisible) return;
         console.error('INFO: "Extend Your Session" dialog detected — clicking Extend Session via DOM...');
-        await page.evaluate(() => {
+        const _extendBtnCoords = await page.evaluate(() => {
           const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
             .find(d => (d.innerText || '').includes('Extend Your Session'));
-          if (!dialog) return;
+          if (!dialog) return null;
           const btn = Array.from(dialog.querySelectorAll('button'))
             .find(b => (b.textContent || '').trim().includes('Extend Session'));
-          if (!btn) return;
+          if (!btn) return null;
           btn.scrollIntoView({ block: 'center' });
-          btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-        }).catch(() => {});
+          const rect = btn.getBoundingClientRect();
+          return {
+            x: Math.round(rect.left + rect.width / 2),
+            y: Math.round(rect.top + rect.height / 2),
+          };
+        }).catch(() => null);
+        if (_extendBtnCoords) {
+          await page.mouse.click(_extendBtnCoords.x, _extendBtnCoords.y);
+        }
         await page.waitForTimeout(2000);
-        await page.evaluate(() => {
+        const _closeBtnCoords = await page.evaluate(() => {
           const closeBtn = document.querySelector('button[aria-label="close" i]');
           if (closeBtn) {
-            closeBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-            return;
+            const rect = closeBtn.getBoundingClientRect();
+            return {
+              x: Math.round(rect.left + rect.width / 2),
+              y: Math.round(rect.top + rect.height / 2),
+            };
           }
           const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
           let n;
@@ -402,14 +412,22 @@ async function extractCredentials() {
               for (let i = 0; i < 8 && el && el !== document.body; i++, el = el.parentElement) {
                 const buttons = [...el.querySelectorAll('button')];
                 if (buttons.length) {
-                  buttons[buttons.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                  return;
+                  const btn = buttons[buttons.length - 1];
+                  const rect = btn.getBoundingClientRect();
+                  return {
+                    x: Math.round(rect.left + rect.width / 2),
+                    y: Math.round(rect.top + rect.height / 2),
+                  };
                 }
               }
               break;
             }
           }
-        }).catch(() => {});
+          return null;
+        }).catch(() => null);
+        if (_closeBtnCoords) {
+          await page.mouse.click(_closeBtnCoords.x, _closeBtnCoords.y);
+        }
         await page.waitForTimeout(500);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
