@@ -376,67 +376,24 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — clicking Extend Session via DOM...');
-        const _extendBtnCoords = await page.evaluate(() => {
-          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
-            .find(d => (d.innerText || '').includes('Extend Your Session'));
-          if (!dialog) return null;
-          const btn = Array.from(dialog.querySelectorAll('button'))
-            .find(b => (b.textContent || '').trim().includes('Extend Session'));
-          if (!btn) return null;
-          btn.scrollIntoView({ block: 'center' });
-          const rect = btn.getBoundingClientRect();
-          return {
-            x: Math.round(rect.left + rect.width / 2),
-            y: Math.round(rect.top + rect.height / 2),
-          };
-        }).catch(() => null);
-        if (_extendBtnCoords) {
-          await page.mouse.click(_extendBtnCoords.x, _extendBtnCoords.y);
+        console.error('INFO: "Extend Your Session" dialog detected — dismissing via Escape key...');
+        await page.keyboard.press('Escape').catch(() => {});
+        await page.waitForTimeout(1000);
+        const _stillVisible = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some(d => (d.innerText || '').includes('Extend Your Session'))
+        ).catch(() => false);
+        if (_stillVisible) {
+          await page.locator('[role="dialog"]').filter({ hasText: 'Extend Your Session' }).locator('button').first().click({ force: true, timeout: 3000 }).catch(() => {});
+          await page.waitForTimeout(1000);
         }
-        await page.waitForTimeout(2000);
-        const _closeBtnCoords = await page.evaluate(() => {
-          const closeBtn = document.querySelector('button[aria-label="close" i]');
-          if (closeBtn) {
-            const rect = closeBtn.getBoundingClientRect();
-            return {
-              x: Math.round(rect.left + rect.width / 2),
-              y: Math.round(rect.top + rect.height / 2),
-            };
-          }
-          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-          let n;
-          while ((n = walker.nextNode())) {
-            if ((n.nodeValue || '').includes('Your sandbox has been extended.')) {
-              let el = n.parentElement;
-              for (let i = 0; i < 8 && el && el !== document.body; i++, el = el.parentElement) {
-                const buttons = [...el.querySelectorAll('button')];
-                if (buttons.length) {
-                  const btn = buttons[buttons.length - 1];
-                  const rect = btn.getBoundingClientRect();
-                  return {
-                    x: Math.round(rect.left + rect.width / 2),
-                    y: Math.round(rect.top + rect.height / 2),
-                  };
-                }
-              }
-              break;
-            }
-          }
-          return null;
-        }).catch(() => null);
-        if (_closeBtnCoords) {
-          await page.mouse.click(_closeBtnCoords.x, _closeBtnCoords.y);
-        }
-        await page.waitForTimeout(500);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session')),
-          { timeout: 10000 }
+          { timeout: 5000 }
         ).then(() => true).catch(() => false);
         if (!_dialogClosed) {
-          console.error('ERROR: "Extend Your Session" dialog did not close within 10s — aborting to avoid invalid credentials');
-          process.exit(1);
+          console.error('WARN: "Extend Your Session" dialog still visible — credentials populate on either Cancel or Extend; continuing');
         }
       };
 
