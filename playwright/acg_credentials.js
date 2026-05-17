@@ -376,26 +376,17 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — dismissing via Escape key...');
-        await page.bringToFront();
-        await page.keyboard.press('Escape').catch(() => {});
+        console.error('INFO: "Extend Your Session" dialog detected — dismissing via keyboard...');
+        await page.evaluate(() => {
+          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+            .find(d => (d.innerText || '').includes('Extend Your Session'));
+          if (!dialog) return;
+          const btn = Array.from(dialog.querySelectorAll('button'))
+            .find(b => (b.textContent || '').trim() === 'Cancel') || dialog.querySelector('button');
+          if (btn) btn.focus();
+        }).catch(() => {});
+        await page.keyboard.press('Enter').catch(() => {});
         await page.waitForTimeout(1000);
-        const _stillVisible = await page.evaluate(() =>
-          Array.from(document.querySelectorAll('[role="dialog"]'))
-            .some(d => (d.innerText || '').includes('Extend Your Session'))
-        ).catch(() => false);
-        if (_stillVisible) {
-          await page.evaluate(() => {
-            const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
-              .find(d => (d.innerText || '').includes('Extend Your Session'));
-            if (!dialog) return;
-            const btn = Array.from(dialog.querySelectorAll('button'))
-              .find(b => (b.textContent || '').trim() === 'Cancel') || dialog.querySelector('button');
-            if (btn) btn.focus();
-          }).catch(() => {});
-          await page.keyboard.press('Enter').catch(() => {});
-          await page.waitForTimeout(1000);
-        }
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session')),
