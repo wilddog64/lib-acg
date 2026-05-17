@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+staged_js=$(git diff --cached --name-only | grep '\.js$' || true)
+if [[ -n "$staged_js" ]]; then
+  while IFS= read -r f; do
+    node --check "$f"
+  done <<< "$staged_js"
+fi
+
+staged_sh=$(git diff --cached --name-only | grep -E '^(bin/|scripts/)' | grep -v '\.js$' || true)
+if [[ -n "$staged_sh" ]]; then
+  while IFS= read -r f; do
+    shellcheck -S warning "$f"
+  done <<< "$staged_sh"
+fi
