@@ -355,7 +355,9 @@ async function extractCredentials() {
           const hasResume = buttons.some(b => b.textContent.trim().includes('Resume'));
           const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
           const hasCredentials = inputs.length > 0 && inputs[0].value.trim().length > 0;
-          return hasStart || hasOpen || hasResume || hasCredentials;
+          const hasExtendDialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+            .some(d => (d.innerText || '').includes('Extend Your Session'));
+          return hasStart || hasOpen || hasResume || hasCredentials || hasExtendDialog;
         }, null, { timeout });
       };
 
@@ -414,6 +416,7 @@ async function extractCredentials() {
         ).catch(() => console.error('WARN: "Extend Your Session" dialog did not close within 5s — proceeding anyway'));
       };
 
+      await _dismissExtendYourSessionDialog();
       let sandboxEntryReady = await _waitForSandboxEntrySoft(30000);
       const retryPathname = (() => {
         try { return new URL(targetUrl).pathname; } catch { return ''; }
