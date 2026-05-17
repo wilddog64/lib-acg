@@ -42,6 +42,14 @@
 - [x] Validate `make help`, `make check`, `make lint`, and `make -n setup`
 - [x] Commit `c5c6d2f` (`chore(makefile): add setup/check/lint targets for local development`) and push to `origin/fix/acg-credentials-extend-dialog`
 
+## Done: Copilot instructions + pre-commit hook
+
+- [x] Add `.github/copilot-instructions.md` with lib-acg review guidance
+- [x] Add executable `.githooks/pre-commit` hook for staged `node --check` and `shellcheck`
+- [x] Replace `Makefile` with `setup`, `check`, `lint`, `credential-test`, `extend-test`, and `help` targets
+- [x] Validate `shellcheck -S warning .githooks/pre-commit`
+- [x] Commit `afde6a8` (`chore(repo): add copilot-instructions and pre-commit hook`) and push to `origin/fix/acg-credentials-extend-dialog`
+
 ## Done: Post-merge PR #9 cleanup + browser-launch dead-code fix
 
 Branch: `fix/post-merge-pr9-cleanup`
