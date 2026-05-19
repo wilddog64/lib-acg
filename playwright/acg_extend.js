@@ -200,9 +200,10 @@ async function extendSandbox() {
           const shutdownTime = new Date();
           shutdownTime.setHours(hours, mins, 0, 0);
           
-          // Midnight/Date-wrap fix: Handle case where shutdown is tomorrow morning
-          if (shutdownTime < now) {
-             shutdownTime.setDate(shutdownTime.getDate() + 1);
+          // Midnight/Date-wrap fix: only wrap when the time just ticked past midnight
+          // (gap ≤ 60 min). Larger gaps mean the sandbox truly expired today.
+          if (shutdownTime < now && (now.getTime() - shutdownTime.getTime()) < 60 * 60 * 1000) {
+            shutdownTime.setDate(shutdownTime.getDate() + 1);
           }
           
           const remainingMs = shutdownTime.getTime() - now.getTime();
