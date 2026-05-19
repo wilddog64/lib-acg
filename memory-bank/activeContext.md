@@ -2,9 +2,17 @@
 
 ## Current Branch: `feat/acg-multi-provider`
 
-- **COMPLETE:** `acg_extend` now calls `_cdpBrowser.disconnect()` on exit instead of skipping cleanup for CDP-attached sessions, preventing the Node process from hanging after a successful extend; committed as `d5e1d07` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`) and pushed to `origin/docs/next-improvements`; PR: https://github.com/wilddog64/lib-acg/pull/14
 **Repo created:** 2026-04-25
-**Status:** Post-merge cleanup after PR #9 complete.
+**Status:** PR #14 merged to main (2026-05-19); enforce_admins restored; retrospective written.
+
+## Just Merged: PR #14 — acg_extend.js CDP disconnect hang fix
+
+- [x] `_cdpBrowser.disconnect()` in finally block to release WebSocket and prevent Node event loop hang
+- [x] Detect "Session extended" toast at startup; exit 0 if already visible instead of looping forever
+- [x] Copilot review 5 findings: memory-bank descriptions, bug spec wording clarity, "Do NOT create a PR" removed from bug docs
+- [x] Merged to main as `b7d1dd7` (2026-05-19)
+- [x] Branch protection enforce_admins re-enabled
+- [x] Retrospective: `docs/retro/2026-05-19-pr14-retrospective.md`
 
 ## Phase Status
 
@@ -74,10 +82,10 @@ Branch: `fix/post-merge-pr9-cleanup`
 - [x] Makefile, CI shellcheck, copilot-instructions, pre-commit hook
 - [x] PR #12 open: `feat/acg-multi-provider` — fix `acg_extend.js` hang on Session extended toast
 
-## In Progress: PR #12 — acg_extend.js startup toast hang fix
+## Next: Subtree pull into k3d-manager
 
-- [ ] Merge PR #12 (`feat/acg-multi-provider`) after Copilot review addressed
-- [ ] Subtree pull into k3d-manager after merge
+- k3d-manager `scripts/lib/acg/` is a git subtree of lib-acg main
+- PR #14 is now on main; subtree pull will bring in the CDP disconnect fix
 
 ## Consumed By
 
