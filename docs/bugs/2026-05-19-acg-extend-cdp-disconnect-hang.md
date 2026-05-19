@@ -11,7 +11,7 @@
 
 **Root cause:** `acg_extend.js` connects to Chrome via `chromium.connectOverCDP()` when Chrome is open. After the extension succeeds, the `finally` block skips `browserContext.close()` (correct — closing would kill Chrome), but never calls `_cdpBrowser.disconnect()`. The open CDP WebSocket keeps the Node event loop alive. The process never exits, so the calling script (`make up`) hangs until Ctrl-C.
 
-The 90-second `OVERALL_TIMEOUT_MS` race resolves (not rejects) when `extendSandbox()` returns successfully, so the timeout does not help — only the 90-second racing Promise timer fires as an unhandled rejection, and whether Node exits depends on the Node version.
+The 90-second `OVERALL_TIMEOUT_MS` race resolves (not rejects) when `extendSandbox()` returns successfully, so the timeout branch never fires. The setTimeout callback continues running in the background, and the open CDP WebSocket keeps the event loop alive — Node does not exit until both are released.
 
 ---
 
@@ -62,7 +62,7 @@ The 90-second `OVERALL_TIMEOUT_MS` race resolves (not rejects) when `extendSandb
 ## Rules
 
 - `node --check playwright/acg_extend.js` — must pass (syntax check)
-- No other files touched
+- Code change limited to `playwright/acg_extend.js`; CHANGELOG and memory-bank updates are required documentation
 
 ---
 
@@ -82,8 +82,7 @@ fix(acg-extend): disconnect CDP browser on exit to prevent node process hang
 
 ## What NOT to Do
 
-- Do NOT create a PR
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/acg_extend.js`
+- Do NOT modify code files other than `playwright/acg_extend.js`
 - Do NOT commit to `main` — work on `docs/next-improvements`
 - Do NOT add a `_cdpBrowser.close()` call — that kills Chrome; only `disconnect()` is safe here
