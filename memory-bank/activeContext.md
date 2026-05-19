@@ -2,7 +2,7 @@
 
 ## Current Branch: `feat/acg-multi-provider`
 
-- **COMPLETE:** `acg_extend` now disconnects from an attached CDP browser on exit instead of closing Chrome, preventing the Node process from hanging after a successful extend; committed as `d5e1d07` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`) and pushed to `origin/docs/next-improvements`; PR URL: not created (per repository instruction).
+- **COMPLETE:** `acg_extend` now calls `_cdpBrowser.disconnect()` on exit instead of skipping cleanup for CDP-attached sessions, preventing the Node process from hanging after a successful extend; committed as `d5e1d07` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`) and pushed to `origin/docs/next-improvements`; PR: https://github.com/wilddog64/lib-acg/pull/14
 **Repo created:** 2026-04-25
 **Status:** Post-merge cleanup after PR #9 complete.
 
