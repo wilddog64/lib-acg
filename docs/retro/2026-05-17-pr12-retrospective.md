@@ -1,8 +1,8 @@
-# Retrospective — PR #12 (feat/acg-multi-provider)
+# Retrospective — PR #12 (fix: acg_extend exit-0 on stale toast)
 
 **Date:** 2026-05-17
 **PR:** #12 — fix: exit 0 when Session extended toast visible at acg_extend.js startup
-**Merged to:** main
+**PR #12 merged to:** main
 **Participants:** Claude, Copilot
 
 ## What Went Well
