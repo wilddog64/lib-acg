@@ -1,7 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.0 Track — `fix/acg-sandbox-ttl-check` (active)
-- **SPEC WRITTEN:** sandbox TTL check — `docs/bugs/2026-05-19-acg-extend-sandbox-ttl-check.md`; Codex assigned on `fix/acg-sandbox-ttl-check`; commit pending
+## v0.1.0 Track — `docs/next-improvements` (active)
+
+- **MERGED PR #15:** `fix/acg-sandbox-ttl-check` → main (`9c9b9b44`). `acg_extend.js` `--check` flag + `acg_check_ttl()` in `acg.sh`. Copilot: fixed Button First click bypass + help text mismatch.
 
 ## v0.1.0 Track (branch: `main`)
 

@@ -1,12 +1,18 @@
 # Active Context — lib-acg
 
-## Current Branch: `feat/acg-multi-provider`
+## Current Branch: `docs/next-improvements`
 
 **Repo created:** 2026-04-25
-**Status:** PR #14 merged to main (2026-05-19); enforce_admins restored; retrospective written.
+**Status:** PR #14 merged to main (2026-05-19); PR #15 merged (2026-05-19); enforce_admins restored.
 
-## In Progress: `fix/acg-sandbox-ttl-check`
-- **SPEC WRITTEN:** expose sandbox TTL via `--check` flag — spec: `docs/bugs/2026-05-19-acg-extend-sandbox-ttl-check.md`; adds `--check` flag to `acg_extend.js` and `acg_check_ttl()` to `acg.sh`; assigned to Codex on `fix/acg-sandbox-ttl-check`
+## Just Merged: PR #15 — Sandbox TTL Check
+
+- [x] `acg_extend.js`: add `--check` mode to probe remaining sandbox TTL without extending
+- [x] `acg.sh`: add `acg_check_ttl()` wrapper function for TTL queries
+- [x] Copilot review 2 findings: Button First click path running before flag check, help text mismatch
+- [x] Merged to main as `9c9b9b44` (2026-05-19)
+- [x] Branch protection enforce_admins re-enabled
+- [x] Retrospective: `docs/retro/2026-05-19-pr15-sandbox-ttl-check-retrospective.md`
 
 ## Just Merged: PR #14 — acg_extend.js CDP disconnect hang fix
 
