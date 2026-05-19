@@ -1,9 +1,11 @@
 # Active Context — lib-acg
 
-## Current Branch: `docs/next-improvements`
+## Current Branch: `fix/acg-extend-midnight-wrap`
 
 **Repo created:** 2026-04-25
 **Status:** PR #14 merged to main (2026-05-19); PR #15 merged (2026-05-19); enforce_admins restored.
+
+- **COMPLETE:** `acg_extend.js` midnight-wrap guard now only rolls to tomorrow when the time gap is ≤ 60 minutes, so expired sandboxes report negative TTL instead of a wrapped next-day value; committed as `05ae7d1` (`fix(acg-extend): narrow midnight-wrap guard to 60 min so expired sandboxes report negative TTL`) and pushed to `origin/fix/acg-extend-midnight-wrap`.
 
 ## Just Merged: PR #15 — Sandbox TTL Check
 
