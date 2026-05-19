@@ -434,7 +434,7 @@ function acg_check_ttl() {
 Usage: acg_check_ttl <sandbox_url>
 
 Read the ACG sandbox auto-shutdown timestamp via Playwright and print the
-remaining minutes to stdout. Prints REMAINING_MINS:<n>; -1 if unparseable.
+remaining minutes to stdout as a plain integer, or -1 if unparseable.
 HELP
     return 0
   fi
