@@ -1,5 +1,8 @@
 # Progress — lib-acg
 
+## v0.1.0 Track — `fix/acg-sandbox-ttl-check` (active)
+- **SPEC WRITTEN:** sandbox TTL check — `docs/bugs/2026-05-19-acg-extend-sandbox-ttl-check.md`; Codex assigned on `fix/acg-sandbox-ttl-check`; commit pending
+
 ## v0.1.0 Track (branch: `main`)
 
 - **COMPLETE:** `acg_extend` now calls `_cdpBrowser.disconnect()` on exit instead of skipping cleanup for CDP-attached sessions, preventing the Node process from hanging after a successful extend; merged to main as `b7d1dd7` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`); PR: https://github.com/wilddog64/lib-acg/pull/14

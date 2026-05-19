@@ -5,6 +5,9 @@
 **Repo created:** 2026-04-25
 **Status:** PR #14 merged to main (2026-05-19); enforce_admins restored; retrospective written.
 
+## In Progress: `fix/acg-sandbox-ttl-check`
+- **SPEC WRITTEN:** expose sandbox TTL via `--check` flag — spec: `docs/bugs/2026-05-19-acg-extend-sandbox-ttl-check.md`; adds `--check` flag to `acg_extend.js` and `acg_check_ttl()` to `acg.sh`; assigned to Codex on `fix/acg-sandbox-ttl-check`
+
 ## Just Merged: PR #14 — acg_extend.js CDP disconnect hang fix
 
 - [x] `_cdpBrowser.disconnect()` in finally block to release WebSocket and prevent Node event loop hang
