@@ -209,7 +209,10 @@ async function extendSandbox() {
           remainingMins = Math.floor(remainingMs / 60000);
           
           console.error(`INFO: Calculated remaining TTL: ~${remainingMins} minutes`);
-          
+          if (process.argv[3] === '--check') {
+            console.log(`REMAINING_MINS:${remainingMins}`);
+            process.exit(0);
+          }
           if (remainingMins > 65) {
             console.log(`INFO: Extension window not open yet (${remainingMins}m remaining). Skipping extension.`);
             process.exit(0);
@@ -220,6 +223,10 @@ async function extendSandbox() {
       }
     } else {
       console.error(`WARN: Auto Shutdown text not found. Proceeding anyway.`);
+    }
+    if (process.argv[3] === '--check') {
+      console.log(`REMAINING_MINS:${remainingMins !== null ? remainingMins : -1}`);
+      process.exit(0);
     }
 
     // 3. Reveal the panel/modal if still not clicked
