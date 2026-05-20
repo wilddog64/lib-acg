@@ -246,7 +246,10 @@ async function extendSandbox() {
     // that the extend panel is open. If step 1 found no extend button, the panel is NOT open.
     const isPanelOpen = clicked;
 
-    if (!isPanelOpen) {
+    // Skip "Open Sandbox" when sandbox is already expired — clicking it navigates Playwright
+    // away from the listing page where "Delete Sandbox" lives, causing Ghost State to fail.
+    const _isSandboxExpired = remainingMins !== null && remainingMins <= 0;
+    if (!isPanelOpen && !_isSandboxExpired) {
       // Click "Open Sandbox" on the card with the "Auto Shutdown" banner (the running sandbox),
       // not .first() which always picks the first card (AWS) regardless of provider.
       const _allOpenBtns = page.locator('button:has-text("Open Sandbox")');
@@ -283,7 +286,12 @@ async function extendSandbox() {
     // failure alone is not a strong enough signal to perform a destructive delete/restart action)
     if (!clicked && remainingMins !== null && remainingMins < 15) {
       console.error('INFO: Extend button missing in critical window. Attempting "Ghost State" recovery (Delete/Restart)...');
-      
+
+      // Re-navigate to listing page — Open Sandbox or other interactions may have navigated away.
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(
+        (e) => console.error(`WARN: Ghost State re-navigation failed: ${e.message}`)
+      );
+
       const deleteBtn = page.locator('button:has-text("Delete Sandbox")').first();
       if (await deleteBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.error('INFO: Clicking Delete Sandbox...');
