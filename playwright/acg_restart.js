@@ -23,6 +23,25 @@ const fs = require('fs');
 
 const AUTH_DIR = path.join(os.homedir(), '.local', 'share', 'k3d-manager', 'profile');
 
+async function _dismissExtendYourSessionDialog(page) {
+  const visible = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('[role="dialog"]'))
+      .some(d => (d.innerText || '').includes('Extend Your Session'))
+  ).catch(() => false);
+  if (!visible) return;
+  console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
+  await page.evaluate(() => {
+    const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+      .find(d => (d.innerText || '').includes('Extend Your Session'));
+    if (!dialog) return;
+    const btns = Array.from(dialog.querySelectorAll('button'));
+    const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
+      || btns.find(b => !/extend/i.test(b.textContent || ''));
+    if (dismiss) dismiss.click();
+  }).catch(() => {});
+  await page.waitForTimeout(1000);
+}
+
 async function _isExtendYourSessionVisible(page) {
   return page.evaluate(() =>
     Array.from(document.querySelectorAll('[role="dialog"]'))
@@ -97,11 +116,9 @@ async function restartSandbox() {
 
     // "Extend Your Session" dialog may appear after clicking Delete Sandbox — dismiss it
     await page.waitForTimeout(1500);
-    if (await _isExtendYourSessionVisible(page)) {
-      console.error('INFO: "Extend Your Session" dialog appeared — pressing Escape...');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
-      // Re-click Delete Sandbox now that the dialog is gone
+    await _dismissExtendYourSessionDialog(page);
+    // Re-click Delete Sandbox in case the dialog intercepted the first click
+    if (!await page.locator('div[role="dialog"] button:has-text("Delete"), button:has-text("Confirm"), button:has-text("Yes, delete")').first().isVisible({ timeout: 2000 }).catch(() => false)) {
       if (await deleteBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.error('INFO: Re-clicking Delete Sandbox after dialog dismiss...');
         await deleteBtn.click({ force: true });
@@ -130,11 +147,7 @@ async function restartSandbox() {
 
     // Dismiss "Extend Your Session" dialog if it appears after starting
     await page.waitForTimeout(3000);
-    if (await _isExtendYourSessionVisible(page)) {
-      console.error('INFO: "Extend Your Session" dialog appeared after Start — pressing Escape...');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
-    }
+    await _dismissExtendYourSessionDialog(page);
 
     console.error('INFO: Sandbox restarted. Ready for credential extraction.');
     console.log('RESTART_OK');

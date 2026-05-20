@@ -376,8 +376,18 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — pressing Escape to dismiss...');
-        await page.keyboard.press('Escape').catch(() => {});
+        console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
+        // Use DOM click (not Playwright keyboard) — Escape closes the panel, not just the dialog
+        await page.evaluate(() => {
+          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+            .find(d => (d.innerText || '').includes('Extend Your Session'));
+          if (!dialog) return;
+          const btns = Array.from(dialog.querySelectorAll('button'));
+          // Prefer Cancel/close button; fall back to any non-Extend button
+          const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
+            || btns.find(b => !/extend/i.test(b.textContent || ''));
+          if (dismiss) dismiss.click();
+        }).catch(() => {});
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
