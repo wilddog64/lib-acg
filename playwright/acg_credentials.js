@@ -376,9 +376,8 @@ async function extractCredentials() {
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
-        console.error('INFO: "Extend Your Session" dialog detected — activating tab and pressing Enter on focused close button...');
-        await page.bringToFront();
-        await page.keyboard.press('Enter').catch(() => {});
+        console.error('INFO: "Extend Your Session" dialog detected — pressing Escape to dismiss...');
+        await page.keyboard.press('Escape').catch(() => {});
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[role="dialog"]'))
@@ -386,7 +385,7 @@ async function extractCredentials() {
           { timeout: 5000 }
         ).then(() => true).catch(() => false);
         if (!_dialogClosed) {
-          console.error('WARN: "Extend Your Session" dialog still visible — credentials populate on either Cancel or Extend; continuing');
+          console.error('WARN: "Extend Your Session" dialog still visible — continuing anyway');
         }
       };
 
