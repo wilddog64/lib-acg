@@ -1,7 +1,7 @@
 # Bugfix: Ghost State "Delete Sandbox" button not found after SPA navigation
 
 **Branch:** `fix/acg-extend-ghost-state-spa-wait`
-**Files:** `playwright/acg_extend.js`, `CHANGELOG.md`
+**Files:** `playwright/acg_extend.js`, `CHANGELOG.md`, `docs/bugs/2026-05-20-acg-extend-ghost-state-delete-btn-not-found-after-spa-nav.md`
 
 ---
 
@@ -85,6 +85,7 @@ node acg_extend.js <sandbox-url>
 ## Rules
 
 - `node --check playwright/acg_extend.js` — zero errors
+- Code change limited to `playwright/acg_extend.js`; CHANGELOG and this spec doc are required documentation
 
 ---
 
@@ -94,7 +95,7 @@ node acg_extend.js <sandbox-url>
 - [ ] Committed to `fix/acg-extend-ghost-state-spa-wait` (new branch from lib-acg main)
 - [ ] Pushed to `origin/fix/acg-extend-ghost-state-spa-wait`
 - [ ] CHANGELOG `[Unreleased]` updated with one-line entry under `### Fixed`
-- [ ] memory-bank updates (activeContext.md + progress.md) are in k3d-manager, applied during the subtree-pull step — not part of this lib-acg commit
+- [ ] `memory-bank/activeContext.md` and `memory-bank/progress.md` updated with commit SHA and task status
 
 **Commit message (exact):**
 ```
@@ -105,7 +106,6 @@ fix(acg-extend): wait for SPA render after Ghost State re-navigation; increase d
 
 ## What NOT to Do
 
-- Do NOT create a PR
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Code change limited to `playwright/acg_extend.js`; CHANGELOG and this bug doc are also committed
+- Do NOT modify any file other than `playwright/acg_extend.js`, `CHANGELOG.md`, and this spec doc
 - Do NOT commit to `main` — work on `fix/acg-extend-ghost-state-spa-wait`

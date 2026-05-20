@@ -9,7 +9,7 @@
 
 **What Copilot flagged:** The `**Files:**` header and `## Files Changed` table only listed `playwright/acg_extend.js`, but the commit also touched `CHANGELOG.md` and the bug doc itself.
 
-**Fix applied:** Added `CHANGELOG.md` and the bug doc to the Files Changed table; updated the `**Files:**` header to match.
+**Fix applied:** Added `CHANGELOG.md` and the spec doc itself to the Files Changed table and to the `**Files:**` header line.
 
 **Root cause:** Spec template was written before knowing that CHANGELOG and the bug doc would be committed alongside the code file. The template should list all files the commit will touch.
 
@@ -31,13 +31,13 @@
 
 ## Finding 3 — Definition of Done requires memory-bank updates not in this PR (line 96)
 
-**What Copilot flagged:** DoD listed `memory-bank/activeContext.md` and `memory-bank/progress.md` updates, but those files live in k3d-manager (not lib-acg) and were updated via the k3d-manager branch — not part of this PR's commit.
+**What Copilot flagged:** DoD listed `memory-bank/activeContext.md` and `memory-bank/progress.md` updates, but the Codex commit did not include those updates. lib-acg has its own `memory-bank/` directory and other bug specs treat updating it as part of the lib-acg workflow.
 
-**Fix applied:** Updated DoD to clarify that memory-bank updates are in k3d-manager (not lib-acg) and are the responsibility of the subtree-pull step, not this commit.
+**Fix applied:** Restored the standard DoD checkbox: `memory-bank/activeContext.md` and `memory-bank/progress.md` updated with commit SHA and task status. The Codex commit was incomplete for not including those updates.
 
-**Root cause:** DoD template was carried over from k3d-manager specs where memory-bank files are in the same repo. For lib-acg specs, memory-bank updates happen in k3d-manager after the subtree pull.
+**Root cause:** The spec wrongly asserted memory-bank files live only in k3d-manager. lib-acg has its own memory-bank and those updates should have been part of this commit.
 
-**Process note:** lib-acg bug specs must NOT include memory-bank DoD checkboxes — those belong in the k3d-manager spec or subtree-pull step description.
+**Process note:** lib-acg bug specs MUST include memory-bank DoD checkboxes. The Codex agent is responsible for updating lib-acg's own `memory-bank/activeContext.md` and `memory-bank/progress.md` as part of the fix commit.
 
 ---
 
