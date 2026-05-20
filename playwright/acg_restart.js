@@ -96,7 +96,15 @@ async function restartSandbox() {
     await page.waitForSelector(
       'button:has-text("Open Sandbox"), button:has-text("Delete Sandbox"), button:has-text("Start Sandbox")',
       { timeout: 30000 }
-    ).catch(() => console.error('WARN: Sandbox card buttons did not appear within 30s — proceeding anyway'));
+    ).catch(async () => {
+      const url = page.url();
+      const btns = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('button'))
+          .map(b => (b.innerText || b.textContent || '').trim())
+          .filter(t => t.length > 0)
+      ).catch(() => []);
+      console.error(`WARN: Sandbox card buttons did not appear within 30s. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
+    });
 
     // If Delete Sandbox is not immediately visible, click Open Sandbox to reveal the panel
     const deleteBtn = page.locator('button:has-text("Delete Sandbox")').first();
@@ -104,7 +112,13 @@ async function restartSandbox() {
       console.error('INFO: Delete Sandbox not visible — clicking Open Sandbox to reveal panel...');
       const openBtn = page.locator('button:has-text("Open Sandbox")').first();
       if (!await openBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        throw new Error('Neither Delete Sandbox nor Open Sandbox button is visible');
+        const url = page.url();
+        const btns = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('button'))
+            .map(b => (b.innerText || b.textContent || '').trim())
+            .filter(t => t.length > 0)
+        ).catch(() => []);
+        throw new Error(`Neither Delete Sandbox nor Open Sandbox visible. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
       }
       await openBtn.click({ force: true });
       await page.waitForSelector('button:has-text("Delete Sandbox")', { timeout: 15000 });

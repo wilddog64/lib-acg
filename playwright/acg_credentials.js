@@ -426,11 +426,16 @@ async function extractCredentials() {
         console.error('INFO: Waiting for credentials to populate (up to 420s)...');
         const deadline = Date.now() + 420000;
         while (Date.now() < deadline) {
-          // If "Extend Your Session" dialog appears, bail out — caller (acg-credential-test)
-          // will invoke acg_restart.js to delete+restart the sandbox and try again.
+          // If "Extend Your Session" dialog is visibly blocking the page, bail out.
+          // Must check offsetParent/display to avoid matching hidden DOM elements.
           const _dialogUp = await page.evaluate(() =>
             Array.from(document.querySelectorAll('[role="dialog"]'))
-              .some(d => (d.innerText || '').includes('Extend Your Session'))
+              .some(d =>
+                (d.innerText || '').includes('Extend Your Session') &&
+                d.offsetParent !== null &&
+                getComputedStyle(d).display !== 'none' &&
+                getComputedStyle(d).visibility !== 'hidden'
+              )
           ).catch(() => false);
           if (_dialogUp) {
             throw new Error('EXTEND_DIALOG_BLOCKED: "Extend Your Session" dialog is blocking credential extraction');
