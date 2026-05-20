@@ -1,13 +1,16 @@
 # Active Context — lib-acg
 
-## Current Branch: `fix/acg-extend-midnight-wrap`
+## Current Branch: `docs/next-improvements`
 
-- **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; committed as `b2598bf` (`feat(acg): expose sandbox TTL via --check flag on acg_extend.js; add acg_check_ttl()`) and pushed to `origin/fix/acg-sandbox-ttl-check`.
-- **COMPLETE:** `acg_extend` now calls `_cdpBrowser.disconnect()` on exit instead of skipping cleanup for CDP-attached sessions, preventing the Node process from hanging after a successful extend; committed as `d5e1d07` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`) and pushed to `origin/docs/next-improvements`; PR: https://github.com/wilddog64/lib-acg/pull/14
 **Repo created:** 2026-04-25
-**Status:** PR #14 merged to main (2026-05-19); PR #15 merged (2026-05-19); enforce_admins restored.
+**Status:** PR #19 (Copilot findings fix) merged to main at `7a31eaf` (2026-05-20); enforce_admins restored; branch switched to `docs/next-improvements`.
 
-- **COMPLETE:** `acg_extend.js` midnight-wrap guard now only rolls to tomorrow when the time gap is ≤ 60 minutes, so expired sandboxes report negative TTL instead of a wrapped next-day value; committed as `05ae7d1` (`fix(acg-extend): narrow midnight-wrap guard to 60 min so expired sandboxes report negative TTL`) and pushed to `origin/fix/acg-extend-midnight-wrap`.
+### Just Merged: PR #19 — Copilot PR #18 Findings
+
+- [x] `docs/issues/2026-05-18-copilot-pr18-findings.md`: Copilot identified 8 doc accuracy issues in CLAUDE.md and issue docs
+- [x] All issues addressed: CLAUDE.md rules clarified, issue doc paths standardized, spec language sharpened
+- [x] Merged to main as `7a31eaf` (`docs(issues): address Copilot PR #18 findings — fix spec doc accuracy (#19)`) on 2026-05-20
+- [x] Branch protection enforce_admins re-enabled
 
 ## Just Merged: PR #15 — Sandbox TTL Check
 
