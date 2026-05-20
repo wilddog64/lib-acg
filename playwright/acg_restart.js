@@ -78,6 +78,11 @@ async function restartSandbox() {
       _cdpBrowser = null;
     }
     if (!browserContext) {
+      // Chrome may have crashed and left stale profile locks — clean them up so
+      // launchPersistentContext can start a fresh Chrome with the auth profile.
+      for (const lockFile of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+        try { fs.unlinkSync(path.join(AUTH_DIR, lockFile)); console.error(`INFO: Removed stale Chrome lock: ${lockFile}`); } catch { /* not present */ }
+      }
       console.error(`INFO: CDP unavailable — launching persistent context from ${AUTH_DIR}...`);
       browserContext = await chromium.launchPersistentContext(AUTH_DIR, {
         headless: false,
