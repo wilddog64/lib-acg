@@ -212,10 +212,10 @@ async function restartSandbox() {
     console.error('INFO: Confirming deletion...');
     await confirmBtn.click({ force: true });
 
-    // Wait for Start Sandbox button
-    console.error('INFO: Waiting for Start Sandbox button...');
+    // Wait for Start Sandbox button — deletion takes up to 2 minutes on the backend
+    console.error('INFO: Waiting for Start Sandbox button (up to 120s)...');
     const startBtn = page.locator('button:has-text("Start Sandbox")').first();
-    if (!await startBtn.isVisible({ timeout: 30000 }).catch(() => false)) {
+    if (!await startBtn.isVisible({ timeout: 120000 }).catch(() => false)) {
       throw new Error('Start Sandbox button did not appear after deletion');
     }
     console.error('INFO: Clicking Start Sandbox...');
