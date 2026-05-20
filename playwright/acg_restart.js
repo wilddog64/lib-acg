@@ -2,6 +2,11 @@ const { chromium } = require('playwright');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+
+const CDP_HOST = '127.0.0.1';
+const CDP_PORT = '9222';
+const CDP_URL = `http://${CDP_HOST}:${CDP_PORT}`;
 
 /**
  * playwright/acg_restart.js
@@ -64,22 +69,45 @@ async function restartSandbox() {
   let browserContext = null;
 
   try {
-    // Connect via CDP (the persistent auth profile Chrome runs with --remote-debugging-port=9222).
-    // Do NOT try launchPersistentContext as a fallback — they share the same profile directory
-    // and Chrome refuses to open a second instance with the same profile.
+    // Connect via CDP. Chrome may have no open tabs — if so, open a blank tab via
+    // the HTTP API to surface the profile context (same pattern as acg_credentials.js).
+    // Only fall back to launchPersistentContext if CDP is completely unavailable
+    // (Chrome crashed). Do NOT delete profile lock files while Chrome is running.
+    let _cdpFailed = false;
     try {
-      _cdpBrowser = await chromium.connectOverCDP('http://localhost:9222');
-      const _contexts = _cdpBrowser.contexts();
+      _cdpBrowser = await chromium.connectOverCDP(CDP_URL);
+      let _contexts = _cdpBrowser.contexts();
+      if (_contexts.length === 0) {
+        console.error('INFO: CDP connected but no open tabs — opening blank tab to expose profile context.');
+        await new Promise((resolve, reject) => {
+          const req = http.request(
+            { hostname: CDP_HOST, port: CDP_PORT, path: '/json/new', method: 'PUT' },
+            res => { res.resume(); resolve(); }
+          );
+          req.on('error', reject);
+          req.end();
+        });
+        await new Promise(r => setTimeout(r, 500));
+        try { await _cdpBrowser.disconnect(); } catch {}
+        _cdpBrowser = await chromium.connectOverCDP(CDP_URL);
+        _contexts = _cdpBrowser.contexts();
+      }
       if (_contexts.length > 0) {
         browserContext = _contexts[0];
         console.error('INFO: Connected via CDP to existing browser session.');
+      } else {
+        try { await _cdpBrowser.disconnect(); } catch {}
+        _cdpBrowser = null;
       }
     } catch {
       _cdpBrowser = null;
+      _cdpFailed = true;
     }
     if (!browserContext) {
-      // Chrome may have crashed and left stale profile locks — clean them up so
-      // launchPersistentContext can start a fresh Chrome with the auth profile.
+      if (!_cdpFailed) {
+        throw new Error('CDP Chrome is running but has no accessible browser context after blank tab');
+      }
+      // CDP truly unavailable — Chrome crashed. Clean stale profile locks and relaunch.
       for (const lockFile of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
         try { fs.unlinkSync(path.join(AUTH_DIR, lockFile)); console.error(`INFO: Removed stale Chrome lock: ${lockFile}`); } catch { /* not present */ }
       }
