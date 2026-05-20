@@ -181,28 +181,33 @@ async function restartSandbox() {
       await page.waitForSelector('button:has-text("Delete Sandbox")', { timeout: 15000 });
     }
 
-    // Click Delete Sandbox
+    // Click Delete Sandbox — up to 3 attempts to get past "Extend Your Session" interception.
+    // The Extend dialog intercepts the first click; dismiss it and always re-click.
+    // Stop early when the "Delete AWS Sandbox?" confirmation dialog appears.
     console.error('INFO: Clicking Delete Sandbox...');
     await deleteBtn.click({ force: true });
 
-    // "Extend Your Session" dialog may appear after clicking Delete Sandbox — dismiss it
-    await page.waitForTimeout(1500);
-    await _dismissExtendYourSessionDialog(page);
-    // Re-click Delete Sandbox in case the dialog intercepted the first click
-    if (!await page.locator('div[role="dialog"] button:has-text("Delete"), button:has-text("Confirm"), button:has-text("Yes, delete")').first().isVisible({ timeout: 2000 }).catch(() => false)) {
-      if (await deleteBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        console.error('INFO: Re-clicking Delete Sandbox after dialog dismiss...');
-        await deleteBtn.click({ force: true });
-        await page.waitForTimeout(1500);
+    const _confirmDialogVisible = async () =>
+      page.locator('[role="dialog"]:has-text("Delete AWS Sandbox")').first()
+        .isVisible({ timeout: 500 }).catch(() => false);
+
+    for (let _i = 0; _i < 3; _i++) {
+      await page.waitForTimeout(1500);
+      if (await _confirmDialogVisible()) break;
+      if (await _isExtendYourSessionVisible(page)) {
+        console.error(`INFO: "Extend Your Session" intercepted Delete click (attempt ${_i + 1}) — dismissing and re-clicking...`);
+        await _dismissExtendYourSessionDialog(page);
+        await page.waitForTimeout(500);
+        if (!await _confirmDialogVisible() && await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await deleteBtn.click({ force: true });
+        }
       }
     }
 
-    // Confirm deletion
-    const confirmBtn = page.locator(
-      'div[role="dialog"] button:has-text("Delete"), button:has-text("Confirm"), button:has-text("Yes, delete")'
-    ).first();
+    // Confirm deletion — button is inside the "Delete AWS Sandbox?" dialog
+    const confirmBtn = page.locator('[role="dialog"]:has-text("Delete AWS Sandbox") button:has-text("Delete Sandbox")').first();
     if (!await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      throw new Error('Delete confirmation dialog did not appear');
+      throw new Error('Delete confirmation dialog ("Delete AWS Sandbox?") did not appear');
     }
     console.error('INFO: Confirming deletion...');
     await confirmBtn.click({ force: true });
