@@ -64,10 +64,25 @@ async function restartSandbox() {
   let browserContext = null;
 
   try {
-    _cdpBrowser = await chromium.connectOverCDP('http://localhost:9222');
-    const contexts = _cdpBrowser.contexts();
-    if (!contexts.length) throw new Error('No browser contexts found via CDP');
-    browserContext = contexts[0];
+    // Try CDP first; fall back to persistent auth profile (same as acg_credentials.js)
+    try {
+      _cdpBrowser = await chromium.connectOverCDP('http://localhost:9222');
+      const contexts = _cdpBrowser.contexts();
+      if (contexts.length > 0) {
+        browserContext = contexts[0];
+        console.error('INFO: Connected via CDP to existing browser session.');
+      }
+    } catch {
+      _cdpBrowser = null;
+    }
+    if (!browserContext) {
+      console.error(`INFO: CDP unavailable — launching persistent context from ${AUTH_DIR}...`);
+      browserContext = await chromium.launchPersistentContext(AUTH_DIR, {
+        headless: false,
+        channel: 'chrome',
+        args: ['--password-store=basic'],
+      });
+    }
 
     // Prefer sandbox listing tab; fall back to any Pluralsight tab; then first tab
     const allPages = browserContext.pages();
@@ -171,6 +186,8 @@ async function restartSandbox() {
   } finally {
     if (_cdpBrowser) {
       await _cdpBrowser.disconnect().catch(() => {});
+    } else if (browserContext) {
+      await browserContext.close().catch(() => {});
     }
   }
 }
