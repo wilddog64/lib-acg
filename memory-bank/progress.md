@@ -8,6 +8,7 @@
 
 ## v0.1.0 Track (branch: `main`)
 
+- **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; merged to main as `9c9b9b44` (PR #15).
 - **COMPLETE:** `acg_extend` now calls `_cdpBrowser.disconnect()` on exit instead of skipping cleanup for CDP-attached sessions, preventing the Node process from hanging after a successful extend; merged to main as `b7d1dd7` (`fix(acg-extend): disconnect CDP browser on exit to prevent node process hang`); PR: https://github.com/wilddog64/lib-acg/pull/14
 - [x] **Repo skeleton** — COMPLETE. CLAUDE.md, README.md, package.json, placeholder
       scripts/lib/cdp.sh, scripts/plugins/acg.sh, scripts/plugins/gcp.sh, scripts/vars.sh,

@@ -79,6 +79,8 @@ async function extendSandbox() {
     process.exit(1);
   }
 
+  const checkMode = process.argv[3] === '--check';
+
   let targetUrl = process.argv[2];
   if (!targetUrl) {
     console.error('ERROR: No sandbox URL provided');
@@ -166,7 +168,7 @@ async function extendSandbox() {
     ];
 
     let clicked = false;
-    const immediateBtn = await _waitForVisibleExtendButton(page, extendSelectors, 0, 'immediately');
+    const immediateBtn = checkMode ? null : await _waitForVisibleExtendButton(page, extendSelectors, 0, 'immediately');
     if (immediateBtn) {
       await immediateBtn.click({ force: true });
       clicked = true;
@@ -210,7 +212,10 @@ async function extendSandbox() {
           remainingMins = Math.floor(remainingMs / 60000);
           
           console.error(`INFO: Calculated remaining TTL: ~${remainingMins} minutes`);
-          
+          if (checkMode) {
+            console.log(`REMAINING_MINS:${remainingMins}`);
+            process.exit(0);
+          }
           if (remainingMins > 65) {
             console.log(`INFO: Extension window not open yet (${remainingMins}m remaining). Skipping extension.`);
             process.exit(0);
@@ -221,6 +226,10 @@ async function extendSandbox() {
       }
     } else {
       console.error(`WARN: Auto Shutdown text not found. Proceeding anyway.`);
+    }
+    if (checkMode) {
+      console.log(`REMAINING_MINS:${remainingMins !== null ? remainingMins : -1}`);
+      process.exit(0);
     }
 
     // 3. Reveal the panel/modal if still not clicked
