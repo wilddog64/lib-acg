@@ -64,36 +64,21 @@ async function restartSandbox() {
   let browserContext = null;
 
   try {
-    // Try CDP only if the sandbox tab is already open (no navigation needed).
-    // CDP Chrome may have expired session cookies — navigating would redirect to sign-in.
-    // If the sandbox tab is not found via CDP, use the persistent auth profile instead.
-    let page = null;
+    // Connect via CDP (the persistent auth profile Chrome runs with --remote-debugging-port=9222).
+    // Do NOT try launchPersistentContext as a fallback — they share the same profile directory
+    // and Chrome refuses to open a second instance with the same profile.
     try {
       _cdpBrowser = await chromium.connectOverCDP('http://localhost:9222');
-      const _cdpContexts = _cdpBrowser.contexts();
-      if (_cdpContexts.length > 0) {
-        const _cdpCtx = _cdpContexts[0];
-        const _sandboxPage = _cdpCtx.pages().find(p => {
-          try { const u = p.url(); return u.includes('cloud-sandboxes') || u.includes('hands-on/playground'); } catch { return false; }
-        });
-        if (_sandboxPage) {
-          browserContext = _cdpCtx;
-          page = _sandboxPage;
-          console.error('INFO: Connected via CDP — sandbox tab already open, no navigation needed.');
-        } else {
-          console.error('INFO: CDP connected but sandbox tab not at expected URL — falling back to persistent auth for navigation...');
-          await _cdpBrowser.disconnect().catch(() => {});
-          _cdpBrowser = null;
-        }
-      } else {
-        await _cdpBrowser.disconnect().catch(() => {});
-        _cdpBrowser = null;
+      const _contexts = _cdpBrowser.contexts();
+      if (_contexts.length > 0) {
+        browserContext = _contexts[0];
+        console.error('INFO: Connected via CDP to existing browser session.');
       }
     } catch {
       _cdpBrowser = null;
     }
     if (!browserContext) {
-      console.error(`INFO: Launching persistent context from ${AUTH_DIR}...`);
+      console.error(`INFO: CDP unavailable — launching persistent context from ${AUTH_DIR}...`);
       browserContext = await chromium.launchPersistentContext(AUTH_DIR, {
         headless: false,
         channel: 'chrome',
@@ -101,19 +86,21 @@ async function restartSandbox() {
       });
     }
 
-    if (!page) {
-      const allPages = browserContext.pages();
-      page = allPages.find(p => {
-        try { const u = p.url(); return u.includes('cloud-sandboxes') || u.includes('hands-on/playground'); } catch { return false; }
-      }) || allPages.find(p => {
-        try { return new URL(p.url()).hostname.endsWith('.pluralsight.com'); } catch { return false; }
-      }) || allPages[0];
-    }
+    const allPages = browserContext.pages();
+    const _tabUrls = allPages.map(p => { try { return p.url(); } catch { return 'unknown'; } });
+    console.error(`INFO: Open tabs (${allPages.length}): ${JSON.stringify(_tabUrls)}`);
+
+    // Prefer sandbox tab; fall back to any Pluralsight tab; then first tab
+    let page = allPages.find(p => {
+      try { const u = p.url(); return u.includes('cloud-sandboxes') || u.includes('hands-on/playground') || u.includes('cloud-playground'); } catch { return false; }
+    }) || allPages.find(p => {
+      try { return new URL(p.url()).hostname.endsWith('.pluralsight.com'); } catch { return false; }
+    }) || allPages[0];
     if (!page) throw new Error('No page found in browser context');
 
     // Navigate to sandbox listing if not already there
     const currentUrl = page.url();
-    const isOnSandboxPage = currentUrl.includes('cloud-sandboxes') || currentUrl.includes('hands-on/playground');
+    const isOnSandboxPage = currentUrl.includes('cloud-sandboxes') || currentUrl.includes('hands-on/playground') || currentUrl.includes('cloud-playground');
     if (!isOnSandboxPage) {
       let normalizedUrl = targetUrl;
       if (normalizedUrl.includes('cloud-playground/cloud-sandboxes')) {
@@ -121,6 +108,10 @@ async function restartSandbox() {
       }
       console.error(`INFO: Navigating to ${normalizedUrl}...`);
       await page.goto(normalizedUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      const postNavUrl = page.url();
+      if (postNavUrl.includes('/id') || postNavUrl.includes('sign-in') || postNavUrl.includes('login')) {
+        throw new Error(`Pluralsight session expired — redirected to ${postNavUrl}. Re-login in Chrome and retry.`);
+      }
     } else {
       console.error(`INFO: Already on sandbox page: ${currentUrl}`);
     }
