@@ -204,13 +204,15 @@ async function restartSandbox() {
       }
     }
 
-    // Confirm deletion — button is inside the "Delete AWS Sandbox?" dialog
-    const confirmBtn = page.locator('[role="dialog"]:has-text("Delete AWS Sandbox") button:has-text("Delete Sandbox")').first();
-    if (!await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    // Confirm deletion — locate the dialog first, then the button within it to avoid
+    // matching the listing-page "Delete Sandbox" button that sits behind the modal.
+    const confirmDialog = page.locator('[role="dialog"]:has-text("Delete AWS Sandbox")').first();
+    if (!await confirmDialog.isVisible({ timeout: 5000 }).catch(() => false)) {
       throw new Error('Delete confirmation dialog ("Delete AWS Sandbox?") did not appear');
     }
+    const confirmBtn = confirmDialog.locator('button:has-text("Delete Sandbox")').first();
     console.error('INFO: Confirming deletion...');
-    await confirmBtn.click({ force: true });
+    await confirmBtn.click();
 
     // Wait for Start Sandbox button — deletion takes up to 2 minutes on the backend
     console.error('INFO: Waiting for Start Sandbox button (up to 120s)...');
