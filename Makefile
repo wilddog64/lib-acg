@@ -1,4 +1,4 @@
-.PHONY: setup check lint credential-test extend-test help
+.PHONY: setup check lint test credential-test extend-test help
 
 SANDBOX_URL ?= https://app.pluralsight.com/hands-on/playground/cloud-sandboxes
 PROVIDER ?=
@@ -8,6 +8,7 @@ help:
 	@printf '  setup             — npm install + download Playwright Chromium browser\n'
 	@printf '  check             — node --check all playwright/*.js files\n'
 	@printf '  lint              — shellcheck all bin/ scripts\n'
+	@printf '  test              — run fixture-based Playwright tests (no live session needed)\n'
 	@printf '  credential-test   — run bin/acg-credential-test (default: ACG portal URL)\n'
 	@printf '                      optional: PROVIDER=aws|gcp SANDBOX_URL=<url>\n'
 	@printf '  extend-test       — run bin/acg-extend-test (default: ACG portal URL)\n'
@@ -20,6 +21,9 @@ setup:
 
 check:
 	node --check playwright/*.js
+
+test:
+	npx playwright test --config playwright.config.js
 
 lint:
 	shellcheck -S warning bin/acg-credential-test bin/acg-extend-test
