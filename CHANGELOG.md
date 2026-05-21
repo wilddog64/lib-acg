@@ -24,6 +24,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Makefile `test` target: runs fixture-based Playwright tests locally without a live Pluralsight session
 - CI `e2e` job: installs Chromium and runs fixture tests on every PR
 
+## [0.1.0] - 2026-05-19
+
 ### Fixed
 - `acg_extend.js`: narrow midnight-wrap guard to ≤ 60 min so expired sandboxes report a negative TTL instead of a large positive value
 - `acg_extend.js`: add `--check` mode to print remaining sandbox TTL without extending
