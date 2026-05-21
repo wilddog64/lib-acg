@@ -16,6 +16,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `acg_restart.js`: log button text found inside alertdialog for easier failure diagnosis
 - `bin/acg-credential-test`: add mandatory final `sts:GetCallerIdentity` gate that runs on all exit paths (first-try success, extraction-fail-restart, ghost-state-restart)
 - `bin/acg-credential-test`: refactor into `_extract_credentials` / `_sts_valid` helpers; previously the extraction-fail→restart path skipped sts validation entirely
+- `acg_extend.js`: add `--provider aws|gcp|azure` argument (default `aws`); scope extend button lookup to provider card by walking up the DOM — prevents always selecting the first (AWS) sandbox when multiple providers are visible
+- `acg_extend.js`: change `--check` flag detection from positional `process.argv[3]` to `process.argv.includes('--check')` — survives argument reordering
 
 ### Added
 - `tests/fixtures/sandbox.html`: self-contained Pluralsight sandbox page fixture with document-level event delegation, `role="alertdialog"` confirm modal, state machine (card→panel→confirm→deleted→started), and "Extend Your Session" dialog
@@ -23,6 +25,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `playwright.config.js`: `@playwright/test` configuration pointing at `tests/` directory
 - Makefile `test` target: runs fixture-based Playwright tests locally without a live Pluralsight session
 - CI `e2e` job: installs Chromium and runs fixture tests on every PR
+
+### Removed
+- `scripts/etc/acg-cluster.yaml`: CloudFormation template removed from lib-acg — it belongs in k3d-manager where it already exists at `scripts/etc/acg-cluster.yaml`
 
 ## [0.1.0] - 2026-05-19
 

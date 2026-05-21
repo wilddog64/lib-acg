@@ -23,7 +23,7 @@ function _isFirstRun() {
   }
 }
 
-async function _waitForVisibleExtendButton(page, selectors, timeoutMs, phaseLabel) {
+async function _waitForVisibleExtendButton(page, selectors, timeoutMs, phaseLabel, providerCardLabel) {
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() <= deadline) {
@@ -33,10 +33,28 @@ async function _waitForVisibleExtendButton(page, selectors, timeoutMs, phaseLabe
     }
 
     for (const selector of selectors) {
-      const btn = page.locator(selector).first();
-      const visible = await btn.isVisible({ timeout: remainingMs }).catch(() => false);
-      if (visible) {
-        console.error(`INFO: Found extend button${phaseLabel ? ` (${phaseLabel})` : ''} with selector: ${selector}`);
+      const allBtns = page.locator(selector);
+      const count = await allBtns.count().catch(() => 0);
+
+      for (let i = 0; i < count; i++) {
+        const btn = allBtns.nth(i);
+        const visible = await btn.isVisible({ timeout: Math.min(500, remainingMs) }).catch(() => false);
+        if (!visible) continue;
+
+        if (providerCardLabel) {
+          const inCard = await btn.evaluate((el, label) => {
+            let node = el.parentElement;
+            for (let j = 0; j < 8; j++) {
+              if (!node) break;
+              if (new RegExp(label, 'i').test(node.innerText || '')) return true;
+              node = node.parentElement;
+            }
+            return false;
+          }, providerCardLabel).catch(() => false);
+          if (!inCard) continue;
+        }
+
+        console.error(`INFO: Found extend button${phaseLabel ? ` (${phaseLabel})` : ''} with selector: ${selector}[${i}]`);
         return btn;
       }
     }
@@ -79,7 +97,27 @@ async function extendSandbox() {
     process.exit(1);
   }
 
-  const checkMode = process.argv[3] === '--check';
+  const checkMode = process.argv.includes('--check');
+  const requireCdp = ['1', 'true', 'yes'].includes((process.env.ACG_REQUIRE_CDP || '').toLowerCase());
+
+  const _providerIdx = process.argv.indexOf('--provider');
+  const PROVIDER = (_providerIdx !== -1 && process.argv[_providerIdx + 1])
+    ? process.argv[_providerIdx + 1].toLowerCase()
+    : 'aws';
+
+  if (!['aws', 'gcp', 'azure'].includes(PROVIDER)) {
+    console.error(`ERROR: Unknown provider '${PROVIDER}' (expected 'aws', 'gcp', or 'azure')`);
+    process.exit(1);
+  }
+  console.error(`INFO: Using provider ${PROVIDER}`);
+
+  const _providerCardLabel = {
+    aws: 'AWS Sandbox',
+    gcp: 'Google Cloud Sandbox',
+    azure: 'Azure Sandbox',
+  }[PROVIDER];
+
+  const _providerHeapLabel = { aws: 'AWS', gcp: 'GCP', azure: 'Azure' }[PROVIDER];
 
   let targetUrl = process.argv[2];
   if (!targetUrl) {
@@ -101,13 +139,21 @@ async function extendSandbox() {
       if (_cdpContexts.length > 0) {
         browserContext = _cdpContexts[0];
         console.error('INFO: Connected via CDP to existing browser session.');
+      } else if (requireCdp) {
+        throw new Error('CDP connection succeeded but no browser context was available; refusing to launch a new Chrome instance');
       }
     } catch (e) {
+      if (requireCdp) {
+        throw new Error(`CDP connection is required for this run: ${e.message}`);
+      }
       // CDP failed, fall back to persistent context
       _cdpBrowser = null;
     }
 
     if (!browserContext) {
+      if (requireCdp) {
+        throw new Error('No existing Chrome CDP browser context was available; refusing to launch a new Chrome instance');
+      }
       browserContext = await chromium.launchPersistentContext(AUTH_DIR, {
         headless: false,
         channel: 'chrome',
@@ -151,7 +197,7 @@ async function extendSandbox() {
 
     // 1. "Button First" check — if the modal is already open, just click it and finish.
     const extendSelectors = [
-      '[data-heap-id="Hands-on Playground - Click - AWS Sandbox - Extend Sandbox"]',
+      `[data-heap-id*="${_providerHeapLabel} Sandbox - Extend Sandbox"]`,
       '[data-heap-id*="Extend Sandbox"]',
       '[data-heap-id*="Extend Session"]',
       'button:has-text("Extend Session")',
@@ -168,7 +214,7 @@ async function extendSandbox() {
     ];
 
     let clicked = false;
-    const immediateBtn = checkMode ? null : await _waitForVisibleExtendButton(page, extendSelectors, 0, 'immediately');
+    const immediateBtn = checkMode ? null : await _waitForVisibleExtendButton(page, extendSelectors, 0, 'immediately', _providerCardLabel);
     if (immediateBtn) {
       await immediateBtn.click({ force: true });
       clicked = true;
@@ -247,30 +293,34 @@ async function extendSandbox() {
     const isPanelOpen = clicked;
 
     if (!isPanelOpen) {
-      // Click "Open Sandbox" on the card with the "Auto Shutdown" banner (the running sandbox),
-      // not .first() which always picks the first card (AWS) regardless of provider.
-      const _allOpenBtns = page.locator('button:has-text("Open Sandbox")');
-      const _btnCount = await _allOpenBtns.count();
-      let _openBtn = null;
-      for (let _i = 0; _i < _btnCount; _i++) {
-        const _hasShutdown = await _allOpenBtns.nth(_i).evaluate(el => {
-          let node = el.parentElement;
-          for (let _j = 0; _j < 6; _j++) {
-            if (!node) break;
-            if (/auto\s*shutdown/i.test(node.innerText || '')) return true;
-            node = node.parentElement;
-          }
-          return false;
-        }).catch(() => false);
-        if (_hasShutdown) { _openBtn = _allOpenBtns.nth(_i); break; }
+      // Prefer the provider-specific card button so we do not accidentally open AWS
+      // just because it is the first matching card in the listing.
+      let _openBtn = page.locator(`button[data-heap-id*="${_providerCardLabel} - Open Sandbox"]`).first();
+      if (!(await _openBtn.isVisible({ timeout: 5000 }).catch(() => false))) {
+        // Fallback to the running sandbox card by its "Auto Shutdown" banner.
+        const _allOpenBtns = page.locator('button:has-text("Open Sandbox")');
+        const _btnCount = await _allOpenBtns.count();
+        _openBtn = null;
+        for (let _i = 0; _i < _btnCount; _i++) {
+          const _hasShutdown = await _allOpenBtns.nth(_i).evaluate(el => {
+            let node = el.parentElement;
+            for (let _j = 0; _j < 6; _j++) {
+              if (!node) break;
+              if (/auto\s*shutdown/i.test(node.innerText || '')) return true;
+              node = node.parentElement;
+            }
+            return false;
+          }).catch(() => false);
+          if (_hasShutdown) { _openBtn = _allOpenBtns.nth(_i); break; }
+        }
+        if (!_openBtn) {
+          _openBtn = page.locator('button:has-text("Open Sandbox"), button:has-text("Start Sandbox"), button:has-text("Resume")').first();
+        }
       }
-      if (!_openBtn) {
-        _openBtn = page.locator('button:has-text("Open Sandbox"), button:has-text("Start Sandbox"), button:has-text("Resume")').first();
-      }
-      if (await _openBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      if (_openBtn && await _openBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.error('INFO: Clicking Open Sandbox to reveal extend panel...');
         await _openBtn.click({ force: true });
-        const _openPanelBtn = await _waitForVisibleExtendButton(page, extendSelectors, 15000, 'after Open Sandbox');
+        const _openPanelBtn = await _waitForVisibleExtendButton(page, extendSelectors, 15000, 'after Open Sandbox', _providerCardLabel);
         if (_openPanelBtn) {
           await _openPanelBtn.click({ force: true });
           clicked = true;
@@ -302,7 +352,7 @@ async function extendSandbox() {
             
             // Pluralsight should now show the "Extend Your Session" modal
             console.error('INFO: Waiting for Extension Modal...');
-            const _recoveryBtn = await _waitForVisibleExtendButton(page, extendSelectors, 20000, 'after recovery');
+            const _recoveryBtn = await _waitForVisibleExtendButton(page, extendSelectors, 20000, 'after recovery', _providerCardLabel);
             if (_recoveryBtn) {
               await _recoveryBtn.click({ force: true });
               clicked = true;
