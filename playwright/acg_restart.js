@@ -163,6 +163,25 @@ async function restartSandbox() {
       console.error(`WARN: Sandbox card buttons did not appear within 30s. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
     });
 
+    // Fast-path: sandbox already deleted — Start Sandbox visible, skip delete flow entirely.
+    const _startBtnEarly = page.locator('button:has-text("Start Sandbox")').first();
+    const _deleteBtnCheck = page.locator('button:has-text("Delete Sandbox")').first();
+    const _openBtnCheck = page.locator('button:has-text("Open Sandbox")').first();
+    if (
+      await _startBtnEarly.isVisible({ timeout: 2000 }).catch(() => false) &&
+      !await _deleteBtnCheck.isVisible({ timeout: 500 }).catch(() => false) &&
+      !await _openBtnCheck.isVisible({ timeout: 500 }).catch(() => false)
+    ) {
+      console.error('INFO: Sandbox already deleted — Start Sandbox visible, skipping delete flow.');
+      console.error('INFO: Clicking Start Sandbox...');
+      await _startBtnEarly.click({ force: true });
+      await page.waitForTimeout(3000);
+      await _dismissExtendYourSessionDialog(page);
+      console.error('INFO: Sandbox restarted. Ready for credential extraction.');
+      console.log('RESTART_OK');
+      return;
+    }
+
     // If Delete Sandbox is not immediately visible, click Open Sandbox to reveal the panel
     const deleteBtn = page.locator('button:has-text("Delete Sandbox")').first();
     if (!await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -249,11 +268,16 @@ async function restartSandbox() {
       console.error('INFO: alertdialog dismissed successfully.');
     }
 
-    // Wait for Start Sandbox button — deletion takes up to 2 minutes on the backend
-    console.error('INFO: Waiting for Start Sandbox button (up to 120s)...');
+    // Wait for Start Sandbox button — deletion takes up to 3 minutes on the backend
+    console.error('INFO: Waiting for Start Sandbox button (up to 180s)...');
     const startBtn = page.locator('button:has-text("Start Sandbox")').first();
-    if (!await startBtn.isVisible({ timeout: 120000 }).catch(() => false)) {
-      throw new Error('Start Sandbox button did not appear after deletion');
+    if (!await startBtn.isVisible({ timeout: 180000 }).catch(() => false)) {
+      const _btns = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('button'))
+          .map(b => (b.innerText || b.textContent || '').trim())
+          .filter(t => t.length > 0)
+      ).catch(() => []);
+      throw new Error(`Start Sandbox button did not appear after deletion. Buttons visible: ${JSON.stringify(_btns)}`);
     }
     console.error('INFO: Clicking Start Sandbox...');
     await startBtn.click({ force: true });
@@ -276,7 +300,7 @@ async function restartSandbox() {
   }
 }
 
-const TIMEOUT_MS = 120000;
+const TIMEOUT_MS = 240000;
 Promise.race([
   restartSandbox(),
   new Promise((_, reject) =>
