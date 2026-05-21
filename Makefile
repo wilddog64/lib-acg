@@ -1,7 +1,9 @@
 .PHONY: setup check lint test credential-test extend-test help
 
-SANDBOX_URL ?= https://app.pluralsight.com/hands-on/playground/cloud-sandboxes
 PROVIDER ?= aws
+
+_ACG_URL := https://app.pluralsight.com/hands-on/playground/cloud-sandboxes
+_PROVIDER := $(if $(filter az,$(PROVIDER)),azure,$(PROVIDER))
 
 help:
 	@printf 'Targets:\n'
@@ -9,10 +11,10 @@ help:
 	@printf '  check             — node --check all playwright/*.js files\n'
 	@printf '  lint              — shellcheck all bin/ scripts\n'
 	@printf '  test              — run fixture-based Playwright tests (no live session needed)\n'
-	@printf '  credential-test   — run bin/acg-credential-test (default: ACG portal URL, aws provider)\n'
-	@printf '                      optional: PROVIDER=aws|gcp|azure SANDBOX_URL=<url>\n'
-	@printf '  extend-test       — run bin/acg-extend-test (default: ACG portal URL, aws provider)\n'
-	@printf '                      optional: PROVIDER=aws|gcp|azure SANDBOX_URL=<url>\n'
+	@printf '  credential-test   — run bin/acg-credential-test against the ACG portal\n'
+	@printf '                      optional: PROVIDER=aws|gcp|az  (default: aws)\n'
+	@printf '  extend-test       — run bin/acg-extend-test against the ACG portal\n'
+	@printf '                      optional: PROVIDER=aws|gcp|az  (default: aws)\n'
 
 setup:
 	npm install
@@ -29,7 +31,7 @@ lint:
 	shellcheck -S warning bin/acg-credential-test bin/acg-extend-test
 
 credential-test:
-	bin/acg-credential-test "$(SANDBOX_URL)" --provider "$(PROVIDER)"
+	bin/acg-credential-test "$(_ACG_URL)" --provider "$(_PROVIDER)"
 
 extend-test:
-	bin/acg-extend-test "$(SANDBOX_URL)" --provider "$(PROVIDER)"
+	bin/acg-extend-test "$(_ACG_URL)" --provider "$(_PROVIDER)"
