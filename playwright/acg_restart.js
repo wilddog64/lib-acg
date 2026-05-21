@@ -204,15 +204,25 @@ async function restartSandbox() {
       }
     }
 
-    // Confirm deletion — the <dialog> container intercepts pointer events at the button
-    // coordinates (pando design-system CSS), so use a DOM-level click via evaluate()
-    // rather than Playwright's simulated pointer event.
-    const confirmDialog = page.locator('[role="alertdialog"]:has-text("Delete AWS Sandbox"), [role="dialog"]:has-text("Delete AWS Sandbox")').first();
-    if (!await confirmDialog.isVisible({ timeout: 5000 }).catch(() => false)) {
+    // Confirm deletion — the pando <dialog role="alertdialog"> intercepts pointer events
+    // at the button coordinates. Use page.evaluate to find the button INSIDE the alertdialog
+    // and click it via DOM, bypassing Playwright's hit-testing entirely.
+    const confirmDialogVisible = await page.evaluate(() =>
+      Boolean(document.querySelector('[role="alertdialog"]'))
+    ).catch(() => false);
+    if (!confirmDialogVisible) {
       throw new Error('Delete confirmation dialog ("Delete AWS Sandbox?") did not appear');
     }
     console.error('INFO: Confirming deletion...');
-    await page.locator('[data-testid="delete-sandbox-button"]').evaluate(el => el.click());
+    const _confirmed = await page.evaluate(() => {
+      const dialog = document.querySelector('[role="alertdialog"]');
+      if (!dialog) return false;
+      const btn = Array.from(dialog.querySelectorAll('button'))
+        .find(b => /delete sandbox/i.test(b.textContent || ''));
+      if (btn) { btn.click(); return true; }
+      return false;
+    });
+    if (!_confirmed) throw new Error('Could not find Delete Sandbox button inside confirmation dialog');
 
     // Wait for Start Sandbox button — deletion takes up to 2 minutes on the backend
     console.error('INFO: Waiting for Start Sandbox button (up to 120s)...');
