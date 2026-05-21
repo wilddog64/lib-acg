@@ -6,6 +6,8 @@
 
 - **COMPLETE:** `acg_extend.js` midnight-wrap guard now only rolls to tomorrow when the time gap is ≤ 60 minutes, so expired sandboxes report negative TTL instead of a wrapped next-day value; committed as `05ae7d1` (`fix(acg-extend): narrow midnight-wrap guard to 60 min so expired sandboxes report negative TTL`) and pushed to `origin/fix/acg-extend-midnight-wrap`.
 
+- **COMPLETE:** `extend provider scope + CFn template removal` — `fix/stale-cred-restart` now selects the provider-specific `Open Sandbox` card via its heap id (`AWS Sandbox`, `Azure Sandbox`, `Google Cloud Sandbox`), keeps `bin/acg-extend-test` pinned to the existing CDP session so it cannot spawn a second Chrome, and removes `scripts/etc/acg-cluster.yaml` from lib-acg. Committed as `80df13d` (`fix(acg-extend): provider-scoped button selection; remove misplaced CFn template`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_extend.js`, `shellcheck bin/acg-extend-test`, and a direct CDP websocket probe because Playwright's browser-level CDP attach failed on Chrome 147 (`Browser.setDownloadBehavior` unsupported). Issue doc: `docs/issues/2026-05-21-acg-extend-cdp-attach-fails-on-chrome-147.md`.
+
 ## v0.1.0 Track (branch: `main`)
 
 - **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; merged to main as `9c9b9b44` (PR #15).
@@ -28,7 +30,7 @@
 - [x] **_browser_launch dead Linux else-block** — FIXED (`5f45069`). Replace 17-line unreachable Linux
       branch with _err one-liner. Spec: `docs/bugs/2026-05-07-browser-launch-linux-dead-code.md`.
       Branch: `fix/post-merge-pr9-cleanup`.
-- [ ] **extend provider scope + CFn template removal** — OPEN. Spec: `docs/plans/v0.2.0-bugfix-extend-provider-scope.md`. Assigned to Codex. Branch: `fix/stale-cred-restart`.
+- [x] **extend provider scope + CFn template removal** — COMPLETE (`80df13d`). Spec: `docs/plans/v0.2.0-bugfix-extend-provider-scope.md`. Branch: `fix/stale-cred-restart`.
 - [ ] **BATS tests** — PLANNED. Add tests/lib/cdp.bats for cdp.sh primitives.
 - [x] **Extend Your Session dialog handling + test wrappers** — FIXED (`be80fbe`). `playwright/acg_credentials.js` now detects the dialog during sandbox entry and credential polling, dismisses it with bringToFront+Enter (best-effort; WARN fallback if dialog persists — credentials populate via Extend path regardless). The repo has new `bin/acg-credential-test` and `bin/acg-extend-test` wrappers for direct Playwright runs.
 - [x] **Makefile setup/check/lint targets** — FIXED (`c5c6d2f`). Added repo-root `Makefile` with `setup`, `check`, `lint`, and `help`; validated `make help`, `make check`, `make lint`, and `make -n setup`.
