@@ -204,9 +204,9 @@ async function restartSandbox() {
       }
     }
 
-    // Confirm deletion — the pando <dialog role="alertdialog"> intercepts pointer events
-    // at the button coordinates. Use page.evaluate to find the button INSIDE the alertdialog
-    // and click it via DOM, bypassing Playwright's hit-testing entirely.
+    // Confirm deletion — the pando <dialog role="alertdialog"> intercepts pointer events.
+    // Use page.evaluate to query and dispatch a full bubbling MouseEvent on the button
+    // inside the alertdialog, bypassing Playwright's hit-testing entirely.
     const confirmDialogVisible = await page.evaluate(() =>
       Boolean(document.querySelector('[role="alertdialog"]'))
     ).catch(() => false);
@@ -214,15 +214,40 @@ async function restartSandbox() {
       throw new Error('Delete confirmation dialog ("Delete AWS Sandbox?") did not appear');
     }
     console.error('INFO: Confirming deletion...');
-    const _confirmed = await page.evaluate(() => {
+    const _confirmResult = await page.evaluate(() => {
       const dialog = document.querySelector('[role="alertdialog"]');
-      if (!dialog) return false;
-      const btn = Array.from(dialog.querySelectorAll('button'))
-        .find(b => /delete sandbox/i.test(b.textContent || ''));
-      if (btn) { btn.click(); return true; }
-      return false;
+      if (!dialog) return { ok: false, reason: 'no alertdialog' };
+      const btns = Array.from(dialog.querySelectorAll('button'));
+      const btn = btns.find(b => /delete sandbox/i.test(b.textContent || ''));
+      if (!btn) return { ok: false, reason: `buttons found: ${btns.map(b => b.textContent.trim()).join(' | ')}` };
+      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      return { ok: true, text: btn.textContent.trim() };
     });
-    if (!_confirmed) throw new Error('Could not find Delete Sandbox button inside confirmation dialog');
+    if (!_confirmResult.ok) throw new Error(`Could not find Delete Sandbox button: ${_confirmResult.reason}`);
+    console.error(`INFO: Dispatched click on "${_confirmResult.text}" inside alertdialog`);
+
+    // Verify the dialog was actually dismissed
+    await page.waitForTimeout(2000);
+    const _dialogStillOpen = await page.evaluate(() =>
+      Boolean(document.querySelector('[role="alertdialog"]'))
+    ).catch(() => false);
+    if (_dialogStillOpen) {
+      console.error('WARN: alertdialog still present 2s after click — trying dispatchEvent with pointer sequence...');
+      await page.evaluate(() => {
+        const dialog = document.querySelector('[role="alertdialog"]');
+        if (!dialog) return;
+        const btn = Array.from(dialog.querySelectorAll('button'))
+          .find(b => /delete sandbox/i.test(b.textContent || ''));
+        if (!btn) return;
+        for (const type of ['pointerover', 'pointerenter', 'pointerdown', 'pointerup']) {
+          btn.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true }));
+        }
+        btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      });
+      await page.waitForTimeout(2000);
+    } else {
+      console.error('INFO: alertdialog dismissed successfully.');
+    }
 
     // Wait for Start Sandbox button — deletion takes up to 2 minutes on the backend
     console.error('INFO: Waiting for Start Sandbox button (up to 120s)...');
