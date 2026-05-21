@@ -28,6 +28,7 @@
 - [x] **_browser_launch dead Linux else-block** — FIXED (`5f45069`). Replace 17-line unreachable Linux
       branch with _err one-liner. Spec: `docs/bugs/2026-05-07-browser-launch-linux-dead-code.md`.
       Branch: `fix/post-merge-pr9-cleanup`.
+- [ ] **extend provider scope + CFn template removal** — OPEN. Spec: `docs/plans/v0.2.0-bugfix-extend-provider-scope.md`. Assigned to Codex. Branch: `fix/stale-cred-restart`.
 - [ ] **BATS tests** — PLANNED. Add tests/lib/cdp.bats for cdp.sh primitives.
 - [x] **Extend Your Session dialog handling + test wrappers** — FIXED (`be80fbe`). `playwright/acg_credentials.js` now detects the dialog during sandbox entry and credential polling, dismisses it with bringToFront+Enter (best-effort; WARN fallback if dialog persists — credentials populate via Extend path regardless). The repo has new `bin/acg-credential-test` and `bin/acg-extend-test` wrappers for direct Playwright runs.
 - [x] **Makefile setup/check/lint targets** — FIXED (`c5c6d2f`). Added repo-root `Makefile` with `setup`, `check`, `lint`, and `help`; validated `make help`, `make check`, `make lint`, and `make -n setup`.

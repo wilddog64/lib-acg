@@ -95,6 +95,12 @@ Branch: `fix/post-merge-pr9-cleanup`
 - [x] Makefile, CI shellcheck, copilot-instructions, pre-commit hook
 - [x] PR #12 open: `feat/acg-multi-provider` — fix `acg_extend.js` hang on Session extended toast
 
+## In Progress: v0.2.0 pre-PR bugfixes — branch `fix/stale-cred-restart`
+
+- [ ] **extend provider scope + CFn template removal** — OPEN. Spec: `docs/plans/v0.2.0-bugfix-extend-provider-scope.md`. Assigned to Codex.
+  - `acg_extend.js`: add `--provider` arg, scope button lookup to provider card (no more `.first()`), fix `--check` positional detection
+  - `scripts/etc/acg-cluster.yaml`: delete from lib-acg (CFn template belongs in k3d-manager)
+
 ## Next: Subtree pull into k3d-manager
 
 - k3d-manager `scripts/lib/acg/` is a git subtree of lib-acg main
