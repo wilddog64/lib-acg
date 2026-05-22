@@ -101,10 +101,27 @@ async function _extractGcpCredentials(page) {
     console.error(`INFO: [${i}] <${tag}> aria-label="${ariaLabel}" visible=${visible} value="${val.slice(0, 40)}"`);
   }
 
-  // GCP fields use aria-label="Copyable input" (same as AWS) — getByLabel() finds nothing
-  // because the visible labels are not HTML-associated. Use positional extraction.
-  const inputs = await page.locator('input[aria-label="Copyable input"]').all();
-  console.error(`INFO: Found ${inputs.length} copyable inputs`);
+  // GCP fields use aria-label="Copyable input". Scope to the Google Cloud sandbox card
+  // by walking up the DOM to find an ancestor whose text contains "Google Cloud".
+  const _allInputs = await page.locator('input[aria-label="Copyable input"]').all();
+  const inputs = [];
+  for (const _inp of _allInputs) {
+    const _inCard = await _inp.evaluate(el => {
+      let node = el.parentElement;
+      for (let _i = 0; _i < 12; _i++) {
+        if (!node) break;
+        if (/google cloud/i.test(node.innerText || '')) return true;
+        node = node.parentElement;
+      }
+      return false;
+    }).catch(() => false);
+    if (_inCard) inputs.push(_inp);
+  }
+  console.error(`INFO: Found ${inputs.length} GCP-scoped copyable inputs`);
+
+  if (inputs.length === 0) {
+    throw new Error('No GCP credential inputs found in Google Cloud Sandbox card — open the GCP panel and retry');
+  }
 
   const username = inputs.length >= 1 ? await inputs[0].inputValue().catch(() => '') : '';
   const password = inputs.length >= 2 ? await inputs[1].inputValue().catch(() => '') : '';
@@ -156,6 +173,7 @@ async function extractCredentials() {
     process.exit(1);
   }
   console.error(`INFO: Using provider ${PROVIDER}`);
+  const _providerCardLabel = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' }[PROVIDER];
 
   if (IS_FIRST_RUN) {
     console.error('BOOTSTRAP: Auth dir is empty — first run detected.');
@@ -337,9 +355,26 @@ async function extractCredentials() {
 
     // 3. Handle Sandbox Start/Open Flow
     // Skip only if credentials are already populated (not just visible — inputs render empty before start)
-    const _firstCredInput = page.locator('input[aria-label="Copyable input"]').first();
-    const _firstCredVisible = await _firstCredInput.isVisible({ timeout: 3000 }).catch(() => false);
-    const _firstCredValue = _firstCredVisible ? await _firstCredInput.inputValue().catch(() => '') : '';
+    const _providerInputs = await page.locator('input[aria-label="Copyable input"]').all();
+    let _firstCredInCard = null;
+    for (const _inp of _providerInputs) {
+      const _inCard = await _inp.evaluate((el, label) => {
+        let node = el.parentElement;
+        for (let _j = 0; _j < 12; _j++) {
+          if (!node) break;
+          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
+          node = node.parentElement;
+        }
+        return false;
+      }, _providerCardLabel).catch(() => false);
+      if (_inCard) { _firstCredInCard = _inp; break; }
+    }
+    const _firstCredVisible = _firstCredInCard
+      ? await _firstCredInCard.isVisible({ timeout: 3000 }).catch(() => false)
+      : false;
+    const _firstCredValue = _firstCredVisible
+      ? await _firstCredInCard.inputValue().catch(() => '')
+      : '';
     const credentialsAlreadyVisible = _firstCredVisible && _firstCredValue.trim().length > 0;
     if (credentialsAlreadyVisible) {
       console.error('INFO: Credentials already populated — skipping Start/Open flow');

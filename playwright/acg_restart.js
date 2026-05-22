@@ -293,7 +293,7 @@ async function restartSandbox() {
     process.exit(1);
   } finally {
     if (_cdpBrowser) {
-      await _cdpBrowser.disconnect().catch(() => {});
+      try { await _cdpBrowser.disconnect(); } catch {}
     } else if (browserContext) {
       await browserContext.close().catch(() => {});
     }
