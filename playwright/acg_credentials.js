@@ -438,7 +438,10 @@ async function extractCredentials() {
               )
           ).catch(() => false);
           if (_dialogUp) {
-            throw new Error('EXTEND_DIALOG_BLOCKED: "Extend Your Session" dialog is blocking credential extraction');
+            console.error('WARN: "Extend Your Session" dialog blocking credential wait — dismissing and retrying...');
+            await _dismissExtendYourSessionDialog();
+            await page.waitForTimeout(1000);
+            continue;
           }
           const inputs = page.locator('input[aria-label="Copyable input"]');
           if (await inputs.count() > 0) {
