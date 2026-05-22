@@ -442,7 +442,7 @@ async function extractCredentials() {
         console.error('INFO: Waiting for credentials to populate (up to 420s)...');
         const deadline = Date.now() + 420000;
         while (Date.now() < deadline) {
-          // If "Extend Your Session" dialog is visibly blocking the page, bail out.
+          // If "Extend Your Session" dialog is visibly blocking the page, dismiss and retry.
           // Must check offsetParent/display to avoid matching hidden DOM elements.
           const _dialogUp = await page.evaluate(() =>
             Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
