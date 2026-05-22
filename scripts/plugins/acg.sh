@@ -132,7 +132,7 @@ _acg_cf_deploy() {
   _run_command -- aws cloudformation deploy \
     --region "${ACG_REGION}" \
     --stack-name "${_ACG_CF_STACK_NAME}" \
-    --template-file "${_LIB_ACG_ROOT}/scripts/etc/acg-cluster.yaml" \
+    --template-file "${ACG_CLUSTER_TEMPLATE:-${_LIB_ACG_ROOT}/scripts/etc/acg-cluster.yaml}" \
     --parameter-overrides \
       "KeyName=${_ACG_KEY_NAME}" \
       "AllowedCidr=${ACG_ALLOWED_CIDR}" \
