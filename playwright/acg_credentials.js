@@ -444,10 +444,7 @@ async function extractCredentials() {
           if (await inputs.count() > 0) {
             let value = await inputs.first().inputValue().catch(() => '');
             if (!value.trim()) {
-              value = await page.evaluate(() => {
-                const el = document.querySelector('input[aria-label="Copyable input"]');
-                return el ? (el.value || '') : '';
-              }).catch(() => '');
+              value = await inputs.first().evaluate(el => el.value || '').catch(() => '');
             }
             if (value.trim().length > 0) {
               return;
