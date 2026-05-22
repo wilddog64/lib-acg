@@ -352,12 +352,20 @@ async function restartSandbox() {
 }
 
 const TIMEOUT_MS = 240000;
-Promise.race([
-  restartSandbox(),
-  new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(`Script timed out after ${TIMEOUT_MS / 1000}s`)), TIMEOUT_MS)
-  )
-]).catch(err => {
-  console.error(`ERROR: ${err.message}`);
-  process.exit(1);
+let _timeoutHandle;
+const _timeoutPromise = new Promise((_, reject) => {
+  _timeoutHandle = setTimeout(
+    () => reject(new Error(`Script timed out after ${TIMEOUT_MS / 1000}s`)),
+    TIMEOUT_MS
+  );
 });
+Promise.race([restartSandbox(), _timeoutPromise])
+  .then(() => {
+    clearTimeout(_timeoutHandle);
+    process.exit(0);
+  })
+  .catch(err => {
+    clearTimeout(_timeoutHandle);
+    console.error(`ERROR: ${err.message}`);
+    process.exit(1);
+  });
