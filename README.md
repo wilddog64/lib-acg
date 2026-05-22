@@ -54,4 +54,4 @@ Recent GitHub Issues and findings:
 | 2026-05-21 | [ACG Extend CDP Attach Failure](docs/issues/2026-05-21-acg-extend-cdp-attach-fails-on-chrome-147.md) | Chrome 147 requires `--enable-automation` to accept CDP attach; Playwright script updated |
 | 2026-05-20 | [Copilot PR #18 Review](docs/issues/2026-05-20-copilot-pr18-review-findings.md) | ACG extend flow timing issues & SPA re-navigation challenges |
 | 2026-05-20 | [Copilot PR #16 Review](docs/issues/2026-05-20-copilot-pr16-review-findings.md) | Credential extraction failure modes & GCP scope findings |
-| 2026-05-19 | [Upstream Push to Main](docs/issues/2026-05-20-copilot-pr18-review-findings.md) | Mistargeted push to main instead of feature branch |
+| 2026-05-19 | [Upstream Push to Main](docs/issues/2026-05-19-lib-acg-upstream-push-targeted-main.md) | Mistargeted push to main instead of feature branch |
