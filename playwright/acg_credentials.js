@@ -240,6 +240,22 @@ async function extractCredentials() {
       console.error(`INFO: Found existing sandbox tab: ${page.url()}`);
     }
 
+    // If "Extend Your Session" dialog is blocking on entry, force a fresh page load to
+    // reset SPA timer state — this dialog re-triggers from React after a sandbox restart
+    // even when acg_restart.js already dismissed it via DOM click.
+    const _entryExtendDialog = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[role="dialog"]'))
+        .some(d => (d.innerText || '').includes('Extend Your Session') && d.offsetParent !== null)
+    ).catch(() => false);
+    if (_entryExtendDialog) {
+      console.error('INFO: "Extend Your Session" dialog on entry — reloading page to clear SPA state...');
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForFunction(
+        () => !document.querySelector('[aria-busy="true"]'),
+        { timeout: 15000 }
+      ).catch(() => {});
+    }
+
     // Skip navigation entirely if sandbox panel is already loaded on the current page
     const _sandboxReady = await page.locator(
       'button:has-text("Start Sandbox"), input[aria-label="Copyable input"]'
