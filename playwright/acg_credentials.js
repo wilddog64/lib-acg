@@ -244,7 +244,7 @@ async function extractCredentials() {
     // reset SPA timer state — this dialog re-triggers from React after a sandbox restart
     // even when acg_restart.js already dismissed it via DOM click.
     const _entryExtendDialog = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('[role="dialog"]'))
+      Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
         .some(d => (d.innerText || '').includes('Extend Your Session') && d.offsetParent !== null)
     ).catch(() => false);
     if (_entryExtendDialog) {
@@ -371,7 +371,7 @@ async function extractCredentials() {
           const hasResume = buttons.some(b => b.textContent.trim().includes('Resume'));
           const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
           const hasCredentials = inputs.length > 0 && inputs[0].value.trim().length > 0;
-          const hasExtendDialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+          const hasExtendDialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session'));
           return hasStart || hasOpen || hasResume || hasCredentials || hasExtendDialog;
         }, null, { timeout });
@@ -388,14 +388,14 @@ async function extractCredentials() {
 
       const _dismissExtendYourSessionDialog = async () => {
         const _dialogVisible = await page.evaluate(() =>
-          Array.from(document.querySelectorAll('[role="dialog"]'))
+          Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session'))
         ).catch(() => false);
         if (!_dialogVisible) return;
         console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
         // Use DOM click (not Playwright keyboard) — Escape closes the panel, not just the dialog
         await page.evaluate(() => {
-          const dialog = Array.from(document.querySelectorAll('[role="dialog"]'))
+          const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
             .find(d => (d.innerText || '').includes('Extend Your Session'));
           if (!dialog) return;
           const btns = Array.from(dialog.querySelectorAll('button'));
@@ -406,7 +406,7 @@ async function extractCredentials() {
         }).catch(() => {});
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
-          () => !Array.from(document.querySelectorAll('[role="dialog"]'))
+          () => !Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
             .some(d => (d.innerText || '').includes('Extend Your Session')),
           { timeout: 5000 }
         ).then(() => true).catch(() => false);
@@ -445,7 +445,7 @@ async function extractCredentials() {
           // If "Extend Your Session" dialog is visibly blocking the page, bail out.
           // Must check offsetParent/display to avoid matching hidden DOM elements.
           const _dialogUp = await page.evaluate(() =>
-            Array.from(document.querySelectorAll('[role="dialog"]'))
+            Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
               .some(d =>
                 (d.innerText || '').includes('Extend Your Session') &&
                 d.offsetParent !== null &&
