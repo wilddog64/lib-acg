@@ -10,6 +10,8 @@
 
 - **COMPLETE:** `playwright/acg_credentials.js` now scopes GCP credential visibility and extraction to the Google Cloud provider card, and `playwright/acg_restart.js` now guards `_cdpBrowser.disconnect()` with `try/catch`; committed as `b3195c3` (`fix(acg-credentials): scope GCP extraction to provider card; fix restart disconnect TypeError`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_credentials.js` and `node --check playwright/acg_restart.js`.
 
+- **COMPLETE:** `playwright/acg_credentials.js` now reduces the provider-label DOM walk depth from 12 to 6, `playwright/acg_restart.js` now scopes Start Sandbox selection to the active provider card and uses provider-specific delete-confirmation text, and `bin/acg-credential-test` forwards `--provider` through restart; committed as `fc7b5e9` (`fix(acg-credentials): reduce DOM walk depth; provider-scope restart Start Sandbox`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_credentials.js`, `node --check playwright/acg_restart.js`, `shellcheck -S warning bin/acg-credential-test`, and `_agent_audit`.
+
 ## v0.1.0 Track (branch: `main`)
 
 - **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; merged to main as `9c9b9b44` (PR #15).
