@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Fixed
+- `scripts/etc/acg-cluster.yaml`: restore CloudFormation template deleted in v0.2.0 without updating the `_LIB_ACG_ROOT/scripts/etc/acg-cluster.yaml` reference in `acg.sh` — broke `make up` with `Invalid template path`
+- `scripts/hooks/pre-commit`: add dangling-reference gate — fails if a file staged for deletion is still referenced by name in any `.sh` or `.js` file remaining in the index; prevents the class of bug where a file is deleted without updating its reference in code
 - `acg_restart.js`: provider-scope the "Start Sandbox" button lookup to the target provider card (AWS/GCP/Azure) — prevents restart from opening the wrong card when multiple providers are visible
 - `bin/acg-credential-test`: forward `--provider` argument through to `acg_restart.js` so the restart flow targets the correct sandbox card on credential extraction failure
 - `acg_credentials.js`: restore AWS-working credential extraction path (reverted to pre-GCP-scoping state); GCP-specific scoping work preserved on `fix/gcp-credentials-scoping` branch for follow-on work
