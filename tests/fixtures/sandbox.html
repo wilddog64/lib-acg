@@ -13,7 +13,7 @@
       /* pando-style: the dialog container intercepts pointer events */
       pointer-events: auto;
     }
-    /* Overlay blocks pointer events at button coordinates (simulates pando bug) */
+    /* Overlay is transparent to pointer events; alertdialog sits above via z-index */
     .dialog-overlay {
       position: fixed; inset: 0; z-index: 99; pointer-events: none;
     }

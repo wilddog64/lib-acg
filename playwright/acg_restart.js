@@ -143,7 +143,22 @@ async function restartSandbox() {
       if (!_cdpFailed) {
         throw new Error('CDP Chrome is running but has no accessible browser context after blank tab');
       }
-      // CDP truly unavailable — Chrome crashed. Clean stale profile locks and relaunch.
+      // Verify Chrome is truly not running before deleting profile locks.
+      // connectOverCDP can fail for reasons other than Chrome being absent (e.g. protocol mismatch).
+      // If the CDP HTTP endpoint still responds, Chrome is running — do not touch lock files.
+      const _cdpHttpAlive = await new Promise(resolve => {
+        const req = http.request(
+          { hostname: CDP_HOST, port: CDP_PORT, path: '/json', method: 'GET' },
+          res => { res.resume(); resolve(true); }
+        );
+        req.on('error', () => resolve(false));
+        req.setTimeout(1000, () => { req.destroy(); resolve(false); });
+        req.end();
+      });
+      if (_cdpHttpAlive) {
+        throw new Error('CDP HTTP is reachable but connectOverCDP failed — Chrome may have a protocol mismatch; will not delete profile locks. Restart Chrome manually and retry.');
+      }
+      // CDP HTTP also unreachable — Chrome is truly not running. Safe to clean stale locks.
       for (const lockFile of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
         try { fs.unlinkSync(path.join(AUTH_DIR, lockFile)); console.error(`INFO: Removed stale Chrome lock: ${lockFile}`); } catch { /* not present */ }
       }
