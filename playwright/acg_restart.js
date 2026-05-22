@@ -58,12 +58,48 @@ async function _isExtendYourSessionVisible(page) {
   ).catch(() => false);
 }
 
+async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() <= deadline) {
+    const allBtns = page.locator(`button:has-text("${buttonText}")`);
+    const count = await allBtns.count().catch(() => 0);
+    for (let i = 0; i < count; i++) {
+      const btn = allBtns.nth(i);
+      const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+      if (!visible) continue;
+      const inCard = await btn.evaluate((el, label) => {
+        let node = el.parentElement;
+        for (let j = 0; j < 8; j++) {
+          if (!node) break;
+          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
+          node = node.parentElement;
+        }
+        return false;
+      }, providerLabel).catch(() => false);
+      if (inCard) return btn;
+    }
+    if (Date.now() < deadline) await page.waitForTimeout(500);
+  }
+  return null;
+}
+
 async function restartSandbox() {
   const targetUrl = process.argv[2];
   if (!targetUrl) {
     console.error('ERROR: No sandbox URL provided');
     process.exit(1);
   }
+
+  const _providerIdx = process.argv.indexOf('--provider');
+  const PROVIDER = (_providerIdx !== -1 && process.argv[_providerIdx + 1])
+    ? process.argv[_providerIdx + 1].toLowerCase()
+    : 'aws';
+  if (!['aws', 'gcp', 'azure'].includes(PROVIDER)) {
+    console.error(`ERROR: Unknown provider '${PROVIDER}' (expected 'aws', 'gcp', or 'azure')`);
+    process.exit(1);
+  }
+  console.error(`INFO: Using provider ${PROVIDER}`);
+  const _providerCardLabel = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' }[PROVIDER];
 
   let _cdpBrowser = null;
   let browserContext = null;
@@ -163,12 +199,12 @@ async function restartSandbox() {
       console.error(`WARN: Sandbox card buttons did not appear within 30s. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
     });
 
-    // Fast-path: sandbox already deleted — Start Sandbox visible, skip delete flow entirely.
-    const _startBtnEarly = page.locator('button:has-text("Start Sandbox")').first();
+    // Fast-path: sandbox already deleted — provider-scoped Start Sandbox visible, skip delete flow.
+    const _startBtnEarly = await _findScopedButton(page, 'Start Sandbox', _providerCardLabel, 2000);
     const _deleteBtnCheck = page.locator('button:has-text("Delete Sandbox")').first();
     const _openBtnCheck = page.locator('button:has-text("Open Sandbox")').first();
     if (
-      await _startBtnEarly.isVisible({ timeout: 2000 }).catch(() => false) &&
+      _startBtnEarly !== null &&
       !await _deleteBtnCheck.isVisible({ timeout: 500 }).catch(() => false) &&
       !await _openBtnCheck.isVisible({ timeout: 500 }).catch(() => false)
     ) {
@@ -202,12 +238,12 @@ async function restartSandbox() {
 
     // Click Delete Sandbox — up to 3 attempts to get past "Extend Your Session" interception.
     // The Extend dialog intercepts the first click; dismiss it and always re-click.
-    // Stop early when the "Delete AWS Sandbox?" confirmation dialog appears.
+    // Stop early when the provider-specific delete confirmation dialog appears.
     console.error('INFO: Clicking Delete Sandbox...');
     await deleteBtn.click({ force: true });
 
     const _confirmDialogVisible = async () =>
-      page.locator('[role="dialog"]:has-text("Delete AWS Sandbox")').first()
+      page.locator('[role="alertdialog"]').first()
         .isVisible({ timeout: 500 }).catch(() => false);
 
     for (let _i = 0; _i < 3; _i++) {
@@ -230,7 +266,7 @@ async function restartSandbox() {
       Boolean(document.querySelector('[role="alertdialog"]'))
     ).catch(() => false);
     if (!confirmDialogVisible) {
-      throw new Error('Delete confirmation dialog ("Delete AWS Sandbox?") did not appear');
+      throw new Error(`Delete confirmation dialog ("Delete ${_providerCardLabel} Sandbox?") did not appear`);
     }
     console.error('INFO: Confirming deletion...');
     const _confirmResult = await page.evaluate(() => {
@@ -268,10 +304,10 @@ async function restartSandbox() {
       console.error('INFO: alertdialog dismissed successfully.');
     }
 
-    // Wait for Start Sandbox button — deletion takes up to 3 minutes on the backend
+    // Wait for Start Sandbox button scoped to provider card — deletion takes up to 3 minutes
     console.error('INFO: Waiting for Start Sandbox button (up to 180s)...');
-    const startBtn = page.locator('button:has-text("Start Sandbox")').first();
-    if (!await startBtn.isVisible({ timeout: 180000 }).catch(() => false)) {
+    const startBtn = await _findScopedButton(page, 'Start Sandbox', _providerCardLabel, 180000);
+    if (!startBtn) {
       const _btns = await page.evaluate(() =>
         Array.from(document.querySelectorAll('button'))
           .map(b => (b.innerText || b.textContent || '').trim())

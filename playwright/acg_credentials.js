@@ -108,7 +108,7 @@ async function _extractGcpCredentials(page) {
   for (const _inp of _allInputs) {
     const _inCard = await _inp.evaluate(el => {
       let node = el.parentElement;
-      for (let _i = 0; _i < 12; _i++) {
+      for (let _i = 0; _i < 6; _i++) {
         if (!node) break;
         if (/google cloud/i.test(node.innerText || '')) return true;
         node = node.parentElement;
@@ -360,7 +360,7 @@ async function extractCredentials() {
     for (const _inp of _providerInputs) {
       const _inCard = await _inp.evaluate((el, label) => {
         let node = el.parentElement;
-        for (let _j = 0; _j < 12; _j++) {
+        for (let _j = 0; _j < 6; _j++) {
           if (!node) break;
           if (new RegExp(label, 'i').test(node.innerText || '')) return true;
           node = node.parentElement;
