@@ -12,6 +12,8 @@
 
 - **COMPLETE:** `playwright/acg_credentials.js` now reduces the provider-label DOM walk depth from 12 to 6, `playwright/acg_restart.js` now scopes Start Sandbox selection to the active provider card and uses provider-specific delete-confirmation text, and `bin/acg-credential-test` forwards `--provider` through restart; committed as `fc7b5e9` (`fix(acg-credentials): reduce DOM walk depth; provider-scope restart Start Sandbox`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_credentials.js`, `node --check playwright/acg_restart.js`, `shellcheck -S warning bin/acg-credential-test`, and `_agent_audit`.
 
+- **COMPLETE:** `playwright/acg_credentials.js` now provider-scopes Open/Start button lookup and `_waitForCredentials` to the active provider card; committed as `ed054a6` (`fix(acg-credentials): provider-scope Open/Start buttons and waitForCredentials`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_credentials.js`.
+
 ## v0.1.0 Track (branch: `main`)
 
 - **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; merged to main as `9c9b9b44` (PR #15).
