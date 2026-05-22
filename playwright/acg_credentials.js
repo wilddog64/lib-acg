@@ -101,27 +101,10 @@ async function _extractGcpCredentials(page) {
     console.error(`INFO: [${i}] <${tag}> aria-label="${ariaLabel}" visible=${visible} value="${val.slice(0, 40)}"`);
   }
 
-  // GCP fields use aria-label="Copyable input". Scope to the Google Cloud sandbox card
-  // by walking up the DOM to find an ancestor whose text contains "Google Cloud".
-  const _allInputs = await page.locator('input[aria-label="Copyable input"]').all();
-  const inputs = [];
-  for (const _inp of _allInputs) {
-    const _inCard = await _inp.evaluate(el => {
-      let node = el.parentElement;
-      for (let _i = 0; _i < 6; _i++) {
-        if (!node) break;
-        if (/google cloud/i.test(node.innerText || '')) return true;
-        node = node.parentElement;
-      }
-      return false;
-    }).catch(() => false);
-    if (_inCard) inputs.push(_inp);
-  }
-  console.error(`INFO: Found ${inputs.length} GCP-scoped copyable inputs`);
-
-  if (inputs.length === 0) {
-    throw new Error('No GCP credential inputs found in Google Cloud Sandbox card — open the GCP panel and retry');
-  }
+  // GCP fields use aria-label="Copyable input" (same as AWS) — getByLabel() finds nothing
+  // because the visible labels are not HTML-associated. Use positional extraction.
+  const inputs = await page.locator('input[aria-label="Copyable input"]').all();
+  console.error(`INFO: Found ${inputs.length} copyable inputs`);
 
   const username = inputs.length >= 1 ? await inputs[0].inputValue().catch(() => '') : '';
   const password = inputs.length >= 2 ? await inputs[1].inputValue().catch(() => '') : '';
@@ -157,31 +140,6 @@ async function _extractGcpCredentials(page) {
   });
 }
 
-async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() <= deadline) {
-    const allBtns = page.locator(`button:has-text("${buttonText}")`);
-    const count = await allBtns.count().catch(() => 0);
-    for (let i = 0; i < count; i++) {
-      const btn = allBtns.nth(i);
-      const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
-      if (!visible) continue;
-      const inCard = await btn.evaluate((el, label) => {
-        let node = el.parentElement;
-        for (let j = 0; j < 8; j++) {
-          if (!node) break;
-          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
-          node = node.parentElement;
-        }
-        return false;
-      }, providerLabel).catch(() => false);
-      if (inCard) return btn;
-    }
-    if (Date.now() < deadline) await page.waitForTimeout(500);
-  }
-  return null;
-}
-
 async function extractCredentials() {
   let targetUrl = process.argv[2];
   if (!targetUrl) {
@@ -198,7 +156,6 @@ async function extractCredentials() {
     process.exit(1);
   }
   console.error(`INFO: Using provider ${PROVIDER}`);
-  const _providerCardLabel = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' }[PROVIDER];
 
   if (IS_FIRST_RUN) {
     console.error('BOOTSTRAP: Auth dir is empty — first run detected.');
@@ -380,26 +337,9 @@ async function extractCredentials() {
 
     // 3. Handle Sandbox Start/Open Flow
     // Skip only if credentials are already populated (not just visible — inputs render empty before start)
-    const _providerInputs = await page.locator('input[aria-label="Copyable input"]').all();
-    let _firstCredInCard = null;
-    for (const _inp of _providerInputs) {
-      const _inCard = await _inp.evaluate((el, label) => {
-        let node = el.parentElement;
-        for (let _j = 0; _j < 6; _j++) {
-          if (!node) break;
-          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
-          node = node.parentElement;
-        }
-        return false;
-      }, _providerCardLabel).catch(() => false);
-      if (_inCard) { _firstCredInCard = _inp; break; }
-    }
-    const _firstCredVisible = _firstCredInCard
-      ? await _firstCredInCard.isVisible({ timeout: 3000 }).catch(() => false)
-      : false;
-    const _firstCredValue = _firstCredVisible
-      ? await _firstCredInCard.inputValue().catch(() => '')
-      : '';
+    const _firstCredInput = page.locator('input[aria-label="Copyable input"]').first();
+    const _firstCredVisible = await _firstCredInput.isVisible({ timeout: 3000 }).catch(() => false);
+    const _firstCredValue = _firstCredVisible ? await _firstCredInput.inputValue().catch(() => '') : '';
     const credentialsAlreadyVisible = _firstCredVisible && _firstCredValue.trim().length > 0;
     if (credentialsAlreadyVisible) {
       console.error('INFO: Credentials already populated — skipping Start/Open flow');
@@ -500,20 +440,11 @@ async function extractCredentials() {
           if (_dialogUp) {
             throw new Error('EXTEND_DIALOG_BLOCKED: "Extend Your Session" dialog is blocking credential extraction');
           }
-          const allInputs = await page.locator('input[aria-label="Copyable input"]').all();
-          for (const inp of allInputs) {
-            const inCard = await inp.evaluate((el, label) => {
-              let node = el.parentElement;
-              for (let j = 0; j < 6; j++) {
-                if (!node) break;
-                if (new RegExp(label, 'i').test(node.innerText || '')) return true;
-                node = node.parentElement;
-              }
-              return false;
-            }, _providerCardLabel).catch(() => false);
-            if (inCard) {
-              const value = await inp.inputValue().catch(() => '');
-              if (value.trim().length > 0) return;
+          const inputs = page.locator('input[aria-label="Copyable input"]');
+          if (await inputs.count() > 0) {
+            const value = await inputs.first().inputValue().catch(() => '');
+            if (value.trim().length > 0) {
+              return;
             }
           }
           await page.waitForTimeout(2000);
@@ -521,14 +452,14 @@ async function extractCredentials() {
         throw new Error('Timed out waiting for credentials to populate');
       };
 
-      // Pattern 1: Provider-scoped "Start Sandbox" button (in a modal or panel)
-      const startButton = await _findScopedButton(page, 'Start Sandbox', _providerCardLabel, 5000);
-      // Pattern 2: Provider-scoped "Open Sandbox" button (on the card)
-      const openButton = await _findScopedButton(page, 'Open Sandbox', _providerCardLabel, 5000);
+      // Pattern 1: Direct "Start Sandbox" button (in a modal or panel)
+      const startButton = page.locator('button:has-text("Start Sandbox")').first();
+      // Pattern 2: "Open Sandbox" button (on the card)
+      const openButton = page.locator('button:has-text("Open Sandbox")').first();
       // Pattern 3: "Resume Sandbox"
       const resumeButton = page.locator('button:has-text("Resume"), button:has-text("Resume Sandbox")').first();
 
-      if (startButton !== null) {
+      if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         const _startEnabled = await startButton.isEnabled({ timeout: 1000 }).catch(() => false);
         if (_startEnabled) {
           console.error('INFO: Clicking Start Sandbox...');
@@ -537,14 +468,14 @@ async function extractCredentials() {
           console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
         }
         await _waitForCredentials();
-      } else if (openButton !== null) {
+      } else if (await openButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.error('INFO: Clicking Open Sandbox...');
         await openButton.click();
         await page.waitForTimeout(3000);
 
         // After Open, there might be a Start Sandbox button in the slide-over
-        const startButton2 = await _findScopedButton(page, 'Start Sandbox', _providerCardLabel, 5000);
-        if (startButton2 !== null) {
+        const startButton2 = page.locator('button:has-text("Start Sandbox")').first();
+        if (await startButton2.isVisible({ timeout: 5000 }).catch(() => false)) {
           console.error('INFO: Clicking Start Sandbox (Step 2)...');
           await startButton2.click();
         }
