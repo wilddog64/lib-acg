@@ -8,6 +8,8 @@
 
 - **COMPLETE:** `extend provider scope + CFn template removal` — `fix/stale-cred-restart` now selects the provider-specific `Open Sandbox` card via its heap id (`AWS Sandbox`, `Azure Sandbox`, `Google Cloud Sandbox`), keeps `bin/acg-extend-test` pinned to the existing CDP session so it cannot spawn a second Chrome, and removes `scripts/etc/acg-cluster.yaml` from lib-acg. Committed as `80df13d` (`fix(acg-extend): provider-scoped button selection; remove misplaced CFn template`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_extend.js`, `shellcheck bin/acg-extend-test`, and a direct CDP websocket probe because Playwright's browser-level CDP attach failed on Chrome 147 (`Browser.setDownloadBehavior` unsupported). Issue doc: `docs/issues/2026-05-21-acg-extend-cdp-attach-fails-on-chrome-147.md`.
 
+- **COMPLETE:** `playwright/acg_credentials.js` now scopes GCP credential visibility and extraction to the Google Cloud provider card, and `playwright/acg_restart.js` now guards `_cdpBrowser.disconnect()` with `try/catch`; committed as `b3195c3` (`fix(acg-credentials): scope GCP extraction to provider card; fix restart disconnect TypeError`) and pushed to `origin/fix/stale-cred-restart`. Validation used `node --check playwright/acg_credentials.js` and `node --check playwright/acg_restart.js`.
+
 ## v0.1.0 Track (branch: `main`)
 
 - **COMPLETE:** `acg_extend.js` now exposes a `--check` mode that prints `REMAINING_MINS:<n>` without extending, and `scripts/plugins/acg.sh` now provides `acg_check_ttl()`; merged to main as `9c9b9b44` (PR #15).
