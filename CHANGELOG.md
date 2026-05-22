@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `playwright/acg_credentials.js`: add `page.evaluate` fallback in `_waitForCredentials` when React-managed inputs return empty from `inputValue()` after CDP reconnect
 - `playwright/acg_credentials.js`: replace `EXTEND_DIALOG_BLOCKED` throw in `_waitForCredentials` with inline dismiss-and-retry loop — dialog reappears after sandbox restart and was incorrectly treated as a hard failure instead of a transient obstacle
 - `playwright/acg_credentials.js`: detect "Extend Your Session" dialog on page entry (before navigation logic) and force a hard `page.goto` reload to reset SPA timer state — React re-triggers the dialog from in-memory state after `acg_restart.js` dismisses it via DOM click, causing `acg_credentials.js` to see it again immediately on attach
+- `playwright/acg_restart.js`: add `clearTimeout` + explicit `process.exit(0)` on success — the 240s timeout timer kept the Node event loop alive after `RESTART_OK` was printed, causing `acg-credential-test` to hang indefinitely waiting for the node process to exit
 
 ## [0.3.0] - 2026-05-21
 
