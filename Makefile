@@ -1,4 +1,4 @@
-.PHONY: setup check lint test credential-test restart-test extend-test help
+.PHONY: setup check lint test credential-test restart-test extend-test all help
 
 PROVIDER ?= aws
 
@@ -16,6 +16,8 @@ help:
 	@printf '  restart-test      — force sandbox restart then re-extract credentials (restart path)\n'
 	@printf '                      optional: PROVIDER=aws|gcp|az  (default: aws)\n'
 	@printf '  extend-test       — run bin/acg-extend-test against the ACG portal\n'
+	@printf '                      optional: PROVIDER=aws|gcp|az  (default: aws)\n'
+	@printf '  all               — run check + lint + test + credential-test + restart-test + extend-test\n'
 	@printf '                      optional: PROVIDER=aws|gcp|az  (default: aws)\n'
 
 setup:
@@ -40,3 +42,5 @@ restart-test:
 
 extend-test:
 	bin/acg-extend-test "$(_ACG_URL)" --provider "$(_PROVIDER)"
+
+all: check lint test credential-test restart-test extend-test
