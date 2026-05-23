@@ -1,9 +1,11 @@
 # Active Context — lib-acg
 
-## Current Branch: `fix/next-improvements-4`
+## Current Branch: `fix/next-improvements-5`
 
 **Repo created:** 2026-04-25  
-**Status:** PR #25 merged to main (2026-05-22, `2e698cf`); enforce_admins restored; next branch active.
+**Status:** PR #26 merged to main (2026-05-23, `fbcecc24`); enforce_admins restored on main; next branch active.
+
+- **MERGED PR #26** — `fix/next-improvements-4` → main (`fbcecc24`). Visibility guard fix for "Extend Your Session" dialog detection: added CSS check (`offsetParent !== null && getComputedStyle(d).display !== 'none'`) to `_dismissExtendYourSessionDialog`. Copilot caught incomplete fix (guard missing from `.find()` selection path). Retrospective: `docs/retro/2026-05-23-pr26-retrospective.md`.
 
 - **MERGED PR #23** — `fix/next-improvements` → main (`48afc0a4`). Two usability fixes: credential masking in terminal output (`bin/acg-credential-test` + `sed 's/=.*/=***/'`); extraction progress visibility in `playwright/acg_credentials.js` (`inputs.first().evaluate()` guarantees same-node evaluation). Copilot review caught locator divergence (Playwright CDN vs file-based) and CHANGELOG wording precision. All threads resolved cleanly. Retrospective: `docs/retro/2026-05-22-fix-credential-masking-retrospective.md`.
 
