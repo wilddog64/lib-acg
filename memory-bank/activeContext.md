@@ -5,6 +5,8 @@
 **Repo created:** 2026-04-25  
 **Status:** PR #26 merged to main (2026-05-23, `fbcecc24`); enforce_admins restored on main; next branch active.
 
+- **COMPLETE:** `playwright/acg_extend.js` now waits for the "Session extended" toast to appear and dismisses it before exiting in both the immediate and non-immediate paths, preventing the toast from persisting into the next CDP-backed script run; committed as `97fca3c` (`fix(acg-extend): dismiss Session extended toast before exit — it persists and blocks next script`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`.
+
 - **COMPLETE:** `playwright/acg_credentials.js` now re-opens the panel inside `_waitForCredentials` when `Open Sandbox` becomes visible again, dismissing any dialog and re-clicking `Open Sandbox` so the credential wait no longer hangs after the panel closes; committed as `7d04391` (`fix(acg-credentials): re-open panel inside waitForCredentials when Open Sandbox button reappears`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_credentials.js`.
 
 - **COMPLETE:** `playwright/acg_credentials.js` and `playwright/acg_restart.js` now dismiss the "Session extended" success toast in addition to the existing "Extend Your Session" dialog, and `acg_credentials.js` now pre-dismisses plus `force: true` clicks `Open Sandbox` so the toast no longer blocks pointer events; committed as `e5e38d6` (`fix(acg): dismiss Session extended toast — it shares alertdialog role and blocks Open Sandbox click`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_credentials.js` and `node --check playwright/acg_restart.js`.
