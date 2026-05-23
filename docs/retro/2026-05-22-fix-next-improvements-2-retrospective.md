@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-22
 **Milestone:** Extend Your Session dialog robustness + acg_restart.js process exit fix
-**PR:** #24 — merged to main
+**PR:** #24 — merged to main (`1a2629b`)
 **Participants:** Claude, Copilot
 
 ## What Went Well
