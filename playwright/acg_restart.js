@@ -248,6 +248,7 @@ async function restartSandbox() {
         throw new Error(`Neither Delete Sandbox nor Open Sandbox visible. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
       }
       await openBtn.click({ force: true });
+      await _dismissExtendYourSessionDialog(page);
       await page.waitForSelector('button:has-text("Delete Sandbox")', { timeout: 15000 });
     }
 
