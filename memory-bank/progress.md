@@ -2,6 +2,8 @@
 
 ## v0.1.0 Track — `fix/next-improvements-5` (active)
 
+- **COMPLETE:** `playwright/acg_extend.js`, `playwright/acg_credentials.js`, and `playwright/acg_restart.js` now use Playwright locator handlers to dismiss the "Session extended" toast, and `acg_extend.js` now replaces the DOM evaluate dismiss path with a locator-based close button click in both immediate and non-immediate exit paths; committed as `e66d028` (`fix(acg): replace DOM evaluate toast dismiss with Playwright locator + addLocatorHandler`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`, `node --check playwright/acg_credentials.js`, and `node --check playwright/acg_restart.js`.
+
 - **COMPLETE:** `playwright/acg_extend.js` now waits for the "Session extended" toast to appear and dismisses it before exiting in both the immediate and non-immediate paths, preventing the toast from persisting into the next CDP-backed script run; committed as `97fca3c` (`fix(acg-extend): dismiss Session extended toast before exit — it persists and blocks next script`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`.
 
 - **COMPLETE:** `playwright/acg_credentials.js` now re-opens the panel inside `_waitForCredentials` when `Open Sandbox` becomes visible again, dismissing any dialog and re-clicking `Open Sandbox` so the credential wait no longer hangs after the panel closes; committed as `7d04391` (`fix(acg-credentials): re-open panel inside waitForCredentials when Open Sandbox button reappears`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_credentials.js`.
