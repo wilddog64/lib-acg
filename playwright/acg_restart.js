@@ -262,8 +262,25 @@ async function restartSandbox() {
         throw new Error(`Neither Delete Sandbox nor Open Sandbox visible. URL: ${url} | Buttons: ${JSON.stringify(btns)}`);
       }
       await openBtn.click({ force: true });
-      await _dismissExtendYourSessionDialog(page);
-      await page.waitForSelector('button:has-text("Delete Sandbox")', { timeout: 15000 });
+      // Poll for Delete Sandbox — dismiss Extend dialog on every tick so a late-appearing
+      // dialog cannot block for more than one 500 ms interval.
+      const _deletePollDeadline = Date.now() + 15000;
+      let _deleteBtnReady = false;
+      while (Date.now() < _deletePollDeadline) {
+        await _dismissExtendYourSessionDialog(page);
+        _deleteBtnReady = await deleteBtn.isVisible({ timeout: 500 }).catch(() => false);
+        if (_deleteBtnReady) break;
+        await page.waitForTimeout(500).catch(() => {});
+      }
+      if (!_deleteBtnReady) {
+        const _url = page.url();
+        const _btns = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('button'))
+            .map(b => (b.innerText || b.textContent || '').trim())
+            .filter(t => t.length > 0)
+        ).catch(() => []);
+        throw new Error(`Delete Sandbox button did not appear within 15s after Open Sandbox click. URL: ${_url} | Buttons: ${JSON.stringify(_btns)}`);
+      }
     }
 
     // Click Delete Sandbox — up to 3 attempts to get past "Extend Your Session" interception.
