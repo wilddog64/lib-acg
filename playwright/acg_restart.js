@@ -37,22 +37,42 @@ async function _dismissExtendYourSessionDialog(page) {
         getComputedStyle(d).display !== 'none'
       )
   ).catch(() => false);
-  if (!visible) return;
-  console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
-  await page.evaluate(() => {
-    const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-      .find(d =>
-        (d.innerText || '').includes('Extend Your Session') &&
-        d.offsetParent !== null &&
-        getComputedStyle(d).display !== 'none'
-      );
-    if (!dialog) return;
-    const btns = Array.from(dialog.querySelectorAll('button'));
-    const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
-      || btns.find(b => !/extend/i.test(b.textContent || ''));
-    if (dismiss) dismiss.click();
-  }).catch(() => {});
-  await page.waitForTimeout(1000);
+  if (visible) {
+    console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
+    await page.evaluate(() => {
+      const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
+        .find(d =>
+          (d.innerText || '').includes('Extend Your Session') &&
+          d.offsetParent !== null &&
+          getComputedStyle(d).display !== 'none'
+        );
+      if (!dialog) return;
+      const btns = Array.from(dialog.querySelectorAll('button'));
+      const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
+        || btns.find(b => !/extend/i.test(b.textContent || ''));
+      if (dismiss) dismiss.click();
+    }).catch(() => {});
+    await page.waitForTimeout(1000);
+  }
+  // Also dismiss "Session extended" success toast — it uses role="alertdialog" and
+  // intercepts pointer events on the Open Sandbox button.
+  const toastVisible = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"]'))
+      .some(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null)
+  ).catch(() => false);
+  if (toastVisible) {
+    console.error('INFO: "Session extended" toast detected — dismissing...');
+    await page.evaluate(() => {
+      const toast = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"]'))
+        .find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
+      if (!toast) return;
+      const closeBtn = Array.from(toast.querySelectorAll('button'))
+        .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
+        || toast.querySelector('button');
+      if (closeBtn) closeBtn.click();
+    }).catch(() => {});
+    await page.waitForTimeout(500);
+  }
 }
 
 async function _isExtendYourSessionVisible(page) {

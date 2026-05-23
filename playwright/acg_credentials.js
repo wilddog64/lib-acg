@@ -261,27 +261,47 @@ async function extractCredentials() {
         Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
           .some(d => (d.innerText || '').includes('Extend Your Session'))
       ).catch(() => false);
-      if (!_dialogVisible) return;
-      console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
-      // Use DOM click (not Playwright keyboard) — Escape closes the panel, not just the dialog
-      await page.evaluate(() => {
-        const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-          .find(d => (d.innerText || '').includes('Extend Your Session'));
-        if (!dialog) return;
-        const btns = Array.from(dialog.querySelectorAll('button'));
-        // Prefer Cancel/close button; fall back to any non-Extend button
-        const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
-          || btns.find(b => !/extend/i.test(b.textContent || ''));
-        if (dismiss) dismiss.click();
-      }).catch(() => {});
-      await page.waitForTimeout(1000);
-      const _dialogClosed = await page.waitForFunction(
-        () => !Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-          .some(d => (d.innerText || '').includes('Extend Your Session')),
-        { timeout: 5000 }
-      ).then(() => true).catch(() => false);
-      if (!_dialogClosed) {
-        console.error('WARN: "Extend Your Session" dialog still visible — continuing anyway');
+      if (_dialogVisible) {
+        console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
+        // Use DOM click (not Playwright keyboard) — Escape closes the panel, not just the dialog
+        await page.evaluate(() => {
+          const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
+            .find(d => (d.innerText || '').includes('Extend Your Session'));
+          if (!dialog) return;
+          const btns = Array.from(dialog.querySelectorAll('button'));
+          // Prefer Cancel/close button; fall back to any non-Extend button
+          const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))
+            || btns.find(b => !/extend/i.test(b.textContent || ''));
+          if (dismiss) dismiss.click();
+        }).catch(() => {});
+        await page.waitForTimeout(1000);
+        const _dialogClosed = await page.waitForFunction(
+          () => !Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
+            .some(d => (d.innerText || '').includes('Extend Your Session')),
+          { timeout: 5000 }
+        ).then(() => true).catch(() => false);
+        if (!_dialogClosed) {
+          console.error('WARN: "Extend Your Session" dialog still visible — continuing anyway');
+        }
+      }
+      // Also dismiss "Session extended" success toast — it shares role="alertdialog" and
+      // intercepts pointer events on the Open Sandbox button.
+      const _toastVisible = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"]'))
+          .some(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null)
+      ).catch(() => false);
+      if (_toastVisible) {
+        console.error('INFO: "Session extended" toast detected — dismissing...');
+        await page.evaluate(() => {
+          const toast = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"]'))
+            .find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
+          if (!toast) return;
+          const closeBtn = Array.from(toast.querySelectorAll('button'))
+            .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
+            || toast.querySelector('button');
+          if (closeBtn) closeBtn.click();
+        }).catch(() => {});
+        await page.waitForTimeout(500);
       }
     };
 
@@ -498,8 +518,9 @@ async function extractCredentials() {
         }
         await _waitForCredentials();
       } else if (await openButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await _dismissExtendYourSessionDialog();
         console.error('INFO: Clicking Open Sandbox...');
-        await openButton.click();
+        await openButton.click({ force: true });
         await page.waitForTimeout(3000);
 
         // After Open, there might be a Start Sandbox button in the slide-over
