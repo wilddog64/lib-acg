@@ -31,7 +31,11 @@ const AUTH_DIR = path.join(os.homedir(), '.local', 'share', 'k3d-manager', 'prof
 async function _dismissExtendYourSessionDialog(page) {
   const visible = await page.evaluate(() =>
     Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-      .some(d => (d.innerText || '').includes('Extend Your Session'))
+      .some(d =>
+        (d.innerText || '').includes('Extend Your Session') &&
+        d.offsetParent !== null &&
+        getComputedStyle(d).display !== 'none'
+      )
   ).catch(() => false);
   if (!visible) return;
   console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
