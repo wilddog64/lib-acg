@@ -285,6 +285,12 @@ async function extractCredentials() {
       }
     };
 
+    const _startExtendDialogWatcher = () => {
+      const _poll = async () => { while (true) { await _dismissExtendYourSessionDialog(); await page.waitForTimeout(2000); } };
+      _poll().catch(() => {});
+    };
+    _startExtendDialogWatcher();
+
     // Skip navigation entirely if sandbox panel is already loaded on the current page
     const _sandboxReady = await page.locator(
       'button:has-text("Start Sandbox"), input[aria-label="Copyable input"]'
