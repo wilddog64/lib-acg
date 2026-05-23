@@ -41,7 +41,11 @@ async function _dismissExtendYourSessionDialog(page) {
   console.error('INFO: "Extend Your Session" dialog detected — clicking Cancel via DOM...');
   await page.evaluate(() => {
     const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-      .find(d => (d.innerText || '').includes('Extend Your Session'));
+      .find(d =>
+        (d.innerText || '').includes('Extend Your Session') &&
+        d.offsetParent !== null &&
+        getComputedStyle(d).display !== 'none'
+      );
     if (!dialog) return;
     const btns = Array.from(dialog.querySelectorAll('button'));
     const dismiss = btns.find(b => /cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''))

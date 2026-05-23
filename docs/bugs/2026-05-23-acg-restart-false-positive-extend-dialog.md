@@ -86,7 +86,7 @@ async function _dismissExtendYourSessionDialog(page) {
 ## Rules
 
 - `node --check playwright/acg_restart.js` — must pass with no errors
-- No other files touched
+- Code change limited to `playwright/acg_restart.js`; CHANGELOG and memory-bank updates may also be required
 
 ---
 
