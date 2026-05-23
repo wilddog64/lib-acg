@@ -176,6 +176,21 @@ async function extendSandbox() {
 
     if (clicked) {
       console.log('Extend action complete (Immediate).');
+      // Wait for the toast to appear then dismiss it — it persists across CDP sessions
+      // and intercepts clicks in the next script that runs against the same Chrome tab.
+      await page.locator('text=/session extended/i').first()
+        .waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+      await page.evaluate(() => {
+        const toast = Array.from(document.querySelectorAll(
+          '[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"], [role="status"]'
+        )).find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
+        if (!toast) return;
+        const closeBtn = Array.from(toast.querySelectorAll('button'))
+          .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
+          || toast.querySelector('button');
+        if (closeBtn) closeBtn.click();
+      }).catch(() => {});
+      await page.waitForTimeout(500);
       return;
     }
 
@@ -356,6 +371,18 @@ async function extendSandbox() {
 
     const expiryText = await page.locator('text=/expires/i').first().textContent().catch(() => 'unknown');
     console.log(`Extend action complete. Current expiry text: ${expiryText}`);
+    // Dismiss "Session extended" toast before exit — same reason as immediate path.
+    await page.evaluate(() => {
+      const toast = Array.from(document.querySelectorAll(
+        '[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"], [role="status"]'
+      )).find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
+      if (!toast) return;
+      const closeBtn = Array.from(toast.querySelectorAll('button'))
+        .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
+        || toast.querySelector('button');
+      if (closeBtn) closeBtn.click();
+    }).catch(() => {});
+    await page.waitForTimeout(500);
   } catch (error) {
     console.error(`ERROR: ${error.message}`);
     process.exit(1);
