@@ -2,6 +2,8 @@
 
 ## v0.1.0 Track — `fix/next-improvements-5` (active)
 
+- **COMPLETE:** `playwright/acg_restart.js` now scrolls the `Delete Sandbox` button back into view and retries the click up to 3 times with an 800 ms settle pause, preventing the panel animation viewport shift from leaving the element outside the viewport; committed as `fd50c7f` (`fix(acg-restart): scroll + retry Delete Sandbox click — panel animation causes viewport shift`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_restart.js`.
+
 - **MERGED PR #26:** `fix/next-improvements-4` → main (`fbcecc24`). Visibility guard fix for "Extend Your Session" dialog: `offsetParent !== null && getComputedStyle(d).display !== 'none'` added to both detection and selection paths. Copilot caught incomplete fix (guard missing from `.find()` path). Retro: `docs/retro/2026-05-23-pr26-retrospective.md`.
 
 - **MERGED PR #25:** `fix/next-improvements-3` → main (`2e698cf`). Extend Your Session modal robustness (background watcher + point-in-time dismissals) + LaunchDaemon plist idempotency. Retro: `docs/retro/2026-05-22-fix-next-improvements-3-retrospective.md`.
