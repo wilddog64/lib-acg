@@ -2,6 +2,8 @@
 
 ## v0.1.0 Track — `fix/next-improvements-5` (active)
 
+- **COMPLETE:** `playwright/acg_extend.js` now uses `_cdpBrowser.close()` instead of `_cdpBrowser.disconnect()` for the CDP cleanup path, matching Playwright's connectOverCDP behavior and avoiding the `disconnect is not a function` error; committed as `52dffbc` (`fix(acg-extend): replace .disconnect() with .close() — CDP Browser has no disconnect method`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`.
+
 - **COMPLETE:** `playwright/acg_restart.js` now polls for `Delete Sandbox` after `Open Sandbox` and dismisses the "Extend Your Session" dialog on every 500 ms tick until the button appears, replacing the one-shot `waitForSelector` path that could stall behind a late modal; committed as `a9cb1c1` (`fix(acg-restart): poll + dismiss Extend dialog while waiting for Delete Sandbox button`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_restart.js`.
 
 - **COMPLETE:** `playwright/acg_restart.js` now scrolls the `Delete Sandbox` button back into view and retries the click up to 3 times with an 800 ms settle pause, preventing the panel animation viewport shift from leaving the element outside the viewport; committed as `fd50c7f` (`fix(acg-restart): scroll + retry Delete Sandbox click — panel animation causes viewport shift`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_restart.js`.
