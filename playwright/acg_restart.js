@@ -270,7 +270,16 @@ async function restartSandbox() {
     // The Extend dialog intercepts the first click; dismiss it and always re-click.
     // Stop early when the provider-specific delete confirmation dialog appears.
     console.error('INFO: Clicking Delete Sandbox...');
-    await deleteBtn.click({ force: true });
+    for (let _attempt = 0; _attempt < 3; _attempt++) {
+      await deleteBtn.scrollIntoViewIfNeeded().catch(() => {});
+      try {
+        await deleteBtn.click({ force: true });
+        break;
+      } catch (_clickErr) {
+        if (_attempt === 2) throw _clickErr;
+        await page.waitForTimeout(800).catch(() => {});
+      }
+    }
 
     const _confirmDialogVisible = async () =>
       page.locator('[role="alertdialog"]').first()
