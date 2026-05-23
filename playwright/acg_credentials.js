@@ -310,6 +310,16 @@ async function extractCredentials() {
       _poll().catch(() => {});
     };
     _startExtendDialogWatcher();
+    // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
+    await page.addLocatorHandler(
+      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      async () => {
+        await page.locator(':has-text("Your sandbox has been extended.")')
+          .filter({ has: page.locator('button') }).last()
+          .locator('button').first().click({ force: true }).catch(() => {});
+        await page.waitForTimeout(300);
+      }
+    );
 
     // Skip navigation entirely if sandbox panel is already loaded on the current page
     const _sandboxReady = await page.locator(

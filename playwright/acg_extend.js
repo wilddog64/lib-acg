@@ -142,6 +142,16 @@ async function extendSandbox() {
       console.error('INFO: "Session extended" toast already visible — extension already succeeded. Exiting.');
       return;
     }
+    // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
+    await page.addLocatorHandler(
+      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      async () => {
+        await page.locator(':has-text("Your sandbox has been extended.")')
+          .filter({ has: page.locator('button') }).last()
+          .locator('button').first().click({ force: true }).catch(() => {});
+        await page.waitForTimeout(300);
+      }
+    );
 
     // Wait for skeleton loaders to clear
     await page.waitForFunction(
@@ -176,21 +186,15 @@ async function extendSandbox() {
 
     if (clicked) {
       console.log('Extend action complete (Immediate).');
-      // Wait for the toast to appear then dismiss it — it persists across CDP sessions
-      // and intercepts clicks in the next script that runs against the same Chrome tab.
-      await page.locator('text=/session extended/i').first()
-        .waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-      await page.evaluate(() => {
-        const toast = Array.from(document.querySelectorAll(
-          '[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"], [role="status"]'
-        )).find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
-        if (!toast) return;
-        const closeBtn = Array.from(toast.querySelectorAll('button'))
-          .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
-          || toast.querySelector('button');
-        if (closeBtn) closeBtn.click();
-      }).catch(() => {});
-      await page.waitForTimeout(500);
+      // Dismiss the "Session extended" toast if it appears — it persists across CDP sessions
+      // and intercepts clicks in the next script. Use Playwright locator (not DOM evaluate)
+      // because the Pando toast component uses no standard ARIA role.
+      const _toastClose = page.locator(':has-text("Your sandbox has been extended.")')
+        .filter({ has: page.locator('button') }).last().locator('button').first();
+      if (await _toastClose.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await _toastClose.click({ force: true }).catch(() => {});
+        await page.waitForTimeout(300);
+      }
       return;
     }
 
@@ -371,18 +375,13 @@ async function extendSandbox() {
 
     const expiryText = await page.locator('text=/expires/i').first().textContent().catch(() => 'unknown');
     console.log(`Extend action complete. Current expiry text: ${expiryText}`);
-    // Dismiss "Session extended" toast before exit — same reason as immediate path.
-    await page.evaluate(() => {
-      const toast = Array.from(document.querySelectorAll(
-        '[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="alert"], [role="status"]'
-      )).find(d => (d.innerText || '').match(/session extended|sandbox has been extended/i) && d.offsetParent !== null);
-      if (!toast) return;
-      const closeBtn = Array.from(toast.querySelectorAll('button'))
-        .find(b => /close|dismiss/i.test(b.getAttribute('aria-label') || b.textContent || ''))
-        || toast.querySelector('button');
-      if (closeBtn) closeBtn.click();
-    }).catch(() => {});
-    await page.waitForTimeout(500);
+    // Dismiss "Session extended" toast — same reason as immediate path.
+    const _toastClose = page.locator(':has-text("Your sandbox has been extended.")')
+      .filter({ has: page.locator('button') }).last().locator('button').first();
+    if (await _toastClose.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await _toastClose.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(300);
+    }
   } catch (error) {
     console.error(`ERROR: ${error.message}`);
     process.exit(1);

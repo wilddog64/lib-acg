@@ -215,6 +215,16 @@ async function restartSandbox() {
     }) || allPages[0];
     if (!page) throw new Error('No page found in browser context');
     _startExtendDialogWatcher(page);
+    // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
+    await page.addLocatorHandler(
+      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      async () => {
+        await page.locator(':has-text("Your sandbox has been extended.")')
+          .filter({ has: page.locator('button') }).last()
+          .locator('button').first().click({ force: true }).catch(() => {});
+        await page.waitForTimeout(300);
+      }
+    );
 
     // Navigate to sandbox listing if not already there
     const currentUrl = page.url();
