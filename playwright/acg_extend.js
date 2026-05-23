@@ -361,8 +361,8 @@ async function extendSandbox() {
     process.exit(1);
   } finally {
     if (_cdpBrowser) {
-      // Disconnect from CDP without closing Chrome; closing would kill the entire process
-      await _cdpBrowser.disconnect().catch(() => {});
+      // close() on a connectOverCDP browser disconnects Playwright without closing Chrome
+      await _cdpBrowser.close().catch(() => {});
     } else if (browserContext) {
       await browserContext.close().catch(() => {});
     }
