@@ -312,11 +312,11 @@ async function extractCredentials() {
     _startExtendDialogWatcher();
     // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
     await page.addLocatorHandler(
-      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      page.getByText('Your sandbox has been extended.').first(),
       async () => {
-        await page.locator(':has-text("Your sandbox has been extended.")')
-          .filter({ has: page.locator('button') }).last()
-          .locator('button').first().click({ force: true }).catch(() => {});
+        const _tb = page.getByText('Your sandbox has been extended.');
+        await _tb.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+          .click({ force: true }).catch(() => {});
         await page.waitForTimeout(300);
       }
     );
@@ -495,6 +495,15 @@ async function extractCredentials() {
             await _dismissExtendYourSessionDialog();
             await page.waitForTimeout(1000);
             continue;
+          }
+          // Dismiss "Session extended" toast — addLocatorHandler does not fire during
+          // DOM-only polling; force:true clicks also bypass it. Check explicitly each tick.
+          const _sessionToast = page.getByText('Your sandbox has been extended.');
+          if (await _sessionToast.isVisible({ timeout: 200 }).catch(() => false)) {
+            console.error('INFO: "Session extended" toast blocking credential wait — dismissing...');
+            await _sessionToast.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+              .click({ force: true }).catch(() => {});
+            await page.waitForTimeout(300);
           }
           const inputs = page.locator('input[aria-label="Copyable input"]');
           if (await inputs.count() > 0) {

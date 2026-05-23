@@ -144,11 +144,11 @@ async function extendSandbox() {
     }
     // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
     await page.addLocatorHandler(
-      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      page.getByText('Your sandbox has been extended.').first(),
       async () => {
-        await page.locator(':has-text("Your sandbox has been extended.")')
-          .filter({ has: page.locator('button') }).last()
-          .locator('button').first().click({ force: true }).catch(() => {});
+        const _tb = page.getByText('Your sandbox has been extended.');
+        await _tb.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+          .click({ force: true }).catch(() => {});
         await page.waitForTimeout(300);
       }
     );
@@ -186,13 +186,13 @@ async function extendSandbox() {
 
     if (clicked) {
       console.log('Extend action complete (Immediate).');
-      // Dismiss the "Session extended" toast if it appears — it persists across CDP sessions
-      // and intercepts clicks in the next script. Use Playwright locator (not DOM evaluate)
-      // because the Pando toast component uses no standard ARIA role.
-      const _toastClose = page.locator(':has-text("Your sandbox has been extended.")')
-        .filter({ has: page.locator('button') }).last().locator('button').first();
-      if (await _toastClose.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await _toastClose.click({ force: true }).catch(() => {});
+      // Dismiss the "Session extended" toast — anchor on the leaf body text then walk up
+      // to the closest ancestor that owns a button (the toast card, not the whole page).
+      const _toastBody = page.getByText('Your sandbox has been extended.');
+      if (await _toastBody.isVisible({ timeout: 5000 }).catch(() => false)) {
+        console.error('INFO: Dismissing "Session extended" toast...');
+        await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+          .click({ force: true }).catch(() => {});
         await page.waitForTimeout(300);
       }
       return;
@@ -375,11 +375,12 @@ async function extendSandbox() {
 
     const expiryText = await page.locator('text=/expires/i').first().textContent().catch(() => 'unknown');
     console.log(`Extend action complete. Current expiry text: ${expiryText}`);
-    // Dismiss "Session extended" toast — same reason as immediate path.
-    const _toastClose = page.locator(':has-text("Your sandbox has been extended.")')
-      .filter({ has: page.locator('button') }).last().locator('button').first();
-    if (await _toastClose.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await _toastClose.click({ force: true }).catch(() => {});
+    // Dismiss "Session extended" toast — same anchor-on-leaf approach as immediate path.
+    const _toastBody = page.getByText('Your sandbox has been extended.');
+    if (await _toastBody.isVisible({ timeout: 3000 }).catch(() => false)) {
+      console.error('INFO: Dismissing "Session extended" toast...');
+      await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+        .click({ force: true }).catch(() => {});
       await page.waitForTimeout(300);
     }
   } catch (error) {

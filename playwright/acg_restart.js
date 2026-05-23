@@ -217,11 +217,11 @@ async function restartSandbox() {
     _startExtendDialogWatcher(page);
     // Auto-dismiss "Session extended" toast whenever it blocks an action — fires on-demand, not a poll loop.
     await page.addLocatorHandler(
-      page.locator(':has-text("Your sandbox has been extended.")').filter({ has: page.locator('button') }).last(),
+      page.getByText('Your sandbox has been extended.').first(),
       async () => {
-        await page.locator(':has-text("Your sandbox has been extended.")')
-          .filter({ has: page.locator('button') }).last()
-          .locator('button').first().click({ force: true }).catch(() => {});
+        const _tb = page.getByText('Your sandbox has been extended.');
+        await _tb.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
+          .click({ force: true }).catch(() => {});
         await page.waitForTimeout(300);
       }
     );
