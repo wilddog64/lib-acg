@@ -486,15 +486,6 @@ async function extractCredentials() {
             await page.waitForTimeout(1000);
             continue;
           }
-          // If Open Sandbox button reappeared, the panel closed — re-open it
-          const _panelClosed = await openButton.isVisible({ timeout: 500 }).catch(() => false);
-          if (_panelClosed) {
-            console.error('INFO: Open Sandbox panel closed — re-dismissing dialog and re-clicking...');
-            await _dismissExtendYourSessionDialog();
-            await openButton.click({ force: true }).catch(() => {});
-            await page.waitForTimeout(3000);
-            continue;
-          }
           const inputs = page.locator('input[aria-label="Copyable input"]');
           if (await inputs.count() > 0) {
             let value = await inputs.first().inputValue().catch(() => '');
