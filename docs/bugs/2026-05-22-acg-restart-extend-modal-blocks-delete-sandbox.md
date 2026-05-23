@@ -42,7 +42,7 @@ No other changes. Function body of `_dismissExtendYourSessionDialog` is unchange
 ## Definition of Done
 
 - [ ] One line added to `playwright/acg_restart.js`: `await _dismissExtendYourSessionDialog(page);` between `openBtn.click()` and `waitForSelector`
-- [ ] No other files modified
+- [ ] Code change limited to `playwright/acg_restart.js`; CHANGELOG/memory-bank/docs updates may also be required
 - [ ] `node --check playwright/acg_restart.js` passes
 - [ ] Commit on branch `fix/next-improvements-3`: `fix(acg-restart): dismiss extend-session modal after Open Sandbox click`
 - [ ] Push to origin before reporting done
@@ -51,7 +51,6 @@ No other changes. Function body of `_dismissExtendYourSessionDialog` is unchange
 
 - Do NOT change `_dismissExtendYourSessionDialog` function body
 - Do NOT remove or move the existing call at line 230 (covers the "already deleted" path)
-- Do NOT create a PR
 - Do NOT skip pre-commit hooks (`--no-verify`)
 - Do NOT modify files outside `playwright/acg_restart.js`
 - Do NOT commit to `main` — work on `fix/next-improvements-3`
