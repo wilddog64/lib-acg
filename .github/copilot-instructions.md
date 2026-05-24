@@ -44,8 +44,10 @@ provider-specific credential flows (AWS, GCP). Consumed by `k3d-manager` as a gi
   positional index fallbacks that assume a fixed UI layout without a comment explaining why.
 - Dialog detection must use `[role="dialog"]` + `innerText` contains check — not CSS class
   selectors that may change with UI updates.
-- All dialog interaction must use `page.evaluate()` with direct DOM `.click()` — never
-  `addLocatorHandler` (it only fires on locator actions, not on `waitForFunction`).
+- Toast/overlay dismissal during pointer actions must use `page.addLocatorHandler()` —
+  it's the canonical pattern for handling transient UI overlays without blocking polling loops
+  (see PR #27 for pattern: detect overlay, press Escape, click target, let handler retry silently).
+  Never use `page.evaluate()` DOM clicks or `waitForFunction` blocks in credential polling paths.
 
 ### Shell Injection (OWASP A03)
 - All variable expansions must be double-quoted: `"$var"`, not `$var`.
