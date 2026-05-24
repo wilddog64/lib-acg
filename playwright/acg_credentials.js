@@ -496,15 +496,6 @@ async function extractCredentials() {
             await page.waitForTimeout(1000);
             continue;
           }
-          // Dismiss "Session extended" toast — addLocatorHandler does not fire during
-          // DOM-only polling; force:true clicks also bypass it. Check explicitly each tick.
-          const _sessionToast = page.getByText('Your sandbox has been extended.');
-          if (await _sessionToast.isVisible({ timeout: 200 }).catch(() => false)) {
-            console.error('INFO: "Session extended" toast blocking credential wait — dismissing...');
-            await _sessionToast.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
-              .click({ force: true }).catch(() => {});
-            await page.waitForTimeout(300);
-          }
           const inputs = page.locator('input[aria-label="Copyable input"]');
           if (await inputs.count() > 0) {
             let value = await inputs.first().inputValue().catch(() => '');
