@@ -186,10 +186,12 @@ async function extendSandbox() {
 
     if (clicked) {
       console.log('Extend action complete (Immediate).');
+      // Wait for the extend API response before checking — the toast is posted asynchronously.
+      await page.waitForTimeout(2000);
       // Dismiss the "Session extended" toast — anchor on the leaf body text then walk up
       // to the closest ancestor that owns a button (the toast card, not the whole page).
       const _toastBody = page.getByText('Your sandbox has been extended.');
-      if (await _toastBody.isVisible({ timeout: 5000 }).catch(() => false)) {
+      if (await _toastBody.isVisible({ timeout: 15000 }).catch(() => false)) {
         console.error('INFO: Dismissing "Session extended" toast...');
         await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
           .click({ force: true }).catch(() => {});
@@ -375,9 +377,10 @@ async function extendSandbox() {
 
     const expiryText = await page.locator('text=/expires/i').first().textContent().catch(() => 'unknown');
     console.log(`Extend action complete. Current expiry text: ${expiryText}`);
+    await page.waitForTimeout(2000);
     // Dismiss "Session extended" toast — same anchor-on-leaf approach as immediate path.
     const _toastBody = page.getByText('Your sandbox has been extended.');
-    if (await _toastBody.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if (await _toastBody.isVisible({ timeout: 10000 }).catch(() => false)) {
       console.error('INFO: Dismissing "Session extended" toast...');
       await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
         .click({ force: true }).catch(() => {});
