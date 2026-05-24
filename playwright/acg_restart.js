@@ -157,7 +157,7 @@ async function restartSandbox() {
           req.end();
         });
         await new Promise(r => setTimeout(r, 500));
-        try { await _cdpBrowser.disconnect(); } catch {}
+        try { await _cdpBrowser.close(); } catch {}
         _cdpBrowser = await chromium.connectOverCDP(CDP_URL);
         _contexts = _cdpBrowser.contexts();
       }
@@ -165,7 +165,7 @@ async function restartSandbox() {
         browserContext = _contexts[0];
         console.error('INFO: Connected via CDP to existing browser session.');
       } else {
-        try { await _cdpBrowser.disconnect(); } catch {}
+        try { await _cdpBrowser.close(); } catch {}
         _cdpBrowser = null;
       }
     } catch {
@@ -219,9 +219,7 @@ async function restartSandbox() {
     await page.addLocatorHandler(
       page.getByText('Your sandbox has been extended.').first(),
       async () => {
-        const _tb = page.getByText('Your sandbox has been extended.');
-        await _tb.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
-          .click({ force: true }).catch(() => {});
+        await page.keyboard.press('Escape').catch(() => {});
         await page.waitForTimeout(300);
       }
     );
@@ -415,7 +413,7 @@ async function restartSandbox() {
     process.exit(1);
   } finally {
     if (_cdpBrowser) {
-      try { await _cdpBrowser.disconnect(); } catch {}
+      try { await _cdpBrowser.close(); } catch {}
     } else if (browserContext) {
       await browserContext.close().catch(() => {});
     }

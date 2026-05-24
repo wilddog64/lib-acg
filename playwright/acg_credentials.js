@@ -198,7 +198,7 @@ async function extractCredentials() {
             req.end();
           });
           await new Promise(r => setTimeout(r, 500));
-          try { await _cdpBrowser.disconnect(); } catch {}
+          try { await _cdpBrowser.close(); } catch {}
           _cdpBrowser = await chromium.connectOverCDP(CDP_URL);
           const _refreshedContexts = _cdpBrowser.contexts();
           if (_refreshedContexts.length > 0) {
@@ -207,7 +207,7 @@ async function extractCredentials() {
           }
         } catch { /* fall through if blank tab fails */ }
         if (!browserContext) {
-          try { await _cdpBrowser.disconnect(); } catch {}
+          try { await _cdpBrowser.close(); } catch {}
           _cdpBrowser = null;
         }
       }
@@ -564,8 +564,8 @@ async function extractCredentials() {
     throw error;
   } finally {
     if (_cdpBrowser) {
-      // CDP attach: detach only — leave the user's Chrome running with tabs intact.
-      try { await _cdpBrowser.disconnect(); } catch {}
+      // close() on a connectOverCDP browser detaches Playwright without closing Chrome.
+      try { await _cdpBrowser.close(); } catch {}
       console.error('INFO: Detached from Chrome CDP session.');
     } else if (browserContext) {
       await browserContext.close();
