@@ -1,9 +1,9 @@
 # Active Context — lib-acg
 
-## Current Branch: `fix/next-improvements-6`
+## Current Branch: `fix/next-improvements-7`
 
 **Repo created:** 2026-04-25  
-**Status:** PR #27 merged to main (2026-05-23, `7c17da72`); enforce_admins restored on main; next branch active (`fix/next-improvements-6`).
+**Status:** PR #28 merged to main (2026-05-24, `ee87aeb2`); enforce_admins restored on main; next branch active (`fix/next-improvements-7`). Retrospective written to `docs/retro/2026-05-24-pr28-retrospective.md`. Next subtree pull into k3d-manager to bring visibility guard fixes.
 
 - **COMPLETE:** `playwright/acg_extend.js` now waits 2 seconds before checking for the "Session extended" toast and increases the visible window to 15s in the immediate path and 10s in the non-immediate path, matching the async server response timing; committed as `e635d1e` (`fix(acg-extend): increase toast detection timeout — async server response arrives after 5s window`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`.
 
@@ -30,6 +30,8 @@
 - **MERGED PR #27** — `fix/next-improvements-5` → main (`7c17da72`). Playwright automation reliability: toast dismissal architecture fixed (removed blocking dismiss from polling loop, consolidated to `addLocatorHandler` handlers), CDP Browser lifecycle corrected (`close()` instead of `disconnect()`), credential re-validation added to extend-test. 14 inter-related toast/CDP bugs collapsed to single coherent fix. Copilot caught button-selection ambiguity + disconnect guard. Retrospective: `docs/retro/2026-05-23-pr27-retrospective.md`.
 
 - **MERGED PR #26** — `fix/next-improvements-4` → main (`fbcecc24`). Visibility guard fix for "Extend Your Session" dialog detection: added CSS check (`offsetParent !== null && getComputedStyle(d).display !== 'none'`) to `_dismissExtendYourSessionDialog`. Copilot caught incomplete fix (guard missing from `.find()` selection path). Retrospective: `docs/retro/2026-05-23-pr26-retrospective.md`.
+
+- **MERGED PR #28** — `fix/next-improvements-6` → main (`ee87aeb2`). Visibility guard fix: three-part CSS check (`offsetParent !== null && getComputedStyle(d).display !== 'none' && getComputedStyle(d).visibility !== 'hidden'`) added to `acg_credentials.js` and `acg_restart.js` to fix false-positive "Extend Your Session" dialog detection. Pluralsight SPA keeps dismissed dialogs in DOM with `visibility:hidden`, but `innerText` still returns non-empty text. Copilot caught guard missing in a third location + `acg_restart.js` missing part of guard despite bug doc claim. Retrospective: `docs/retro/2026-05-24-pr28-retrospective.md`.
 
 - **MERGED PR #23** — `fix/next-improvements` → main (`48afc0a4`). Two usability fixes: credential masking in terminal output (`bin/acg-credential-test` + `sed 's/=.*/=***/'`); extraction progress visibility in `playwright/acg_credentials.js` (`inputs.first().evaluate()` guarantees same-node evaluation). Copilot review caught locator divergence (Playwright CDN vs file-based) and CHANGELOG wording precision. All threads resolved cleanly. Retrospective: `docs/retro/2026-05-22-fix-credential-masking-retrospective.md`.
 
