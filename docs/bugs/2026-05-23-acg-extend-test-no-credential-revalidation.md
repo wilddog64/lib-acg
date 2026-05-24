@@ -94,7 +94,7 @@ fi
 ## Rules
 
 - `shellcheck -S warning bin/acg-extend-test` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 
 ---
 

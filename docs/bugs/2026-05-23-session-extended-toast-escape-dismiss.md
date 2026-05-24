@@ -78,7 +78,7 @@ falls through to check for inputs in a potentially unstable page state.
 ## Rules
 
 - `node --check playwright/acg_credentials.js` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 
 ---
 

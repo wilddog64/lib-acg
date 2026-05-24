@@ -77,7 +77,7 @@ race), one retry (post-settle), third propagates if genuinely unclickable.
 ## Rules
 
 - `node --check playwright/acg_restart.js` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 
 ---
 

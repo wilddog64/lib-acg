@@ -92,7 +92,7 @@ wait. The `continue` skips the 2 s tail sleep and starts the next poll iteration
 ## Rules
 
 - `node --check playwright/acg_credentials.js` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 
 ---
 
