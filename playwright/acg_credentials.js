@@ -453,7 +453,12 @@ async function extractCredentials() {
           const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
           const hasCredentials = inputs.length > 0 && inputs[0].value.trim().length > 0;
           const hasExtendDialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
-            .some(d => (d.innerText || '').includes('Extend Your Session'));
+            .some(d =>
+              (d.innerText || '').includes('Extend Your Session') &&
+              d.offsetParent !== null &&
+              getComputedStyle(d).display !== 'none' &&
+              getComputedStyle(d).visibility !== 'hidden'
+            );
           return hasStart || hasOpen || hasResume || hasCredentials || hasExtendDialog;
         }, null, { timeout });
       };
