@@ -64,7 +64,7 @@ DOM polling does not need and must not have its own dismiss path.
 ## Rules
 
 - `node --check playwright/acg_credentials.js` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 - The `addLocatorHandler` at line 312 must remain untouched
 
 ---

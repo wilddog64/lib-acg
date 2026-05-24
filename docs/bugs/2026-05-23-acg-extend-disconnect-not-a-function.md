@@ -51,7 +51,7 @@ make: *** [extend-test] Error 1
 ## Rules
 
 - `node --check playwright/acg_extend.js` must pass
-- No other files touched
+- Code change limited to the listed file(s); CHANGELOG and memory-bank updates may also be required
 
 ---
 
