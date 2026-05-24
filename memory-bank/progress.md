@@ -2,6 +2,8 @@
 
 ## v0.1.0 Track — `fix/next-improvements-5` (active)
 
+- **COMPLETE:** `playwright/acg_credentials.js` now removes the toast-dismiss block from `_waitForCredentials`, leaving only the credential-input polling and preserving the `addLocatorHandler` toast handling for pointer actions; committed as `08f322e` (`fix(acg-credentials): remove toast dismiss from _waitForCredentials — DOM queries are never blocked by overlays`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_credentials.js`.
+
 - **COMPLETE:** `playwright/acg_extend.js`, `playwright/acg_credentials.js`, and `playwright/acg_restart.js` now anchor the "Session extended" toast dismiss on the leaf text node and closest button-bearing ancestor, fixing the broad `:has-text()` selector that could click the wrong button; committed as `bf57ee1` (`fix(acg): anchor toast dismiss on leaf text + XPath ancestor — broad :has-text selector clicked wrong button`) and pushed to `origin/fix/next-improvements-5`. Validation used `node --check playwright/acg_extend.js`, `node --check playwright/acg_credentials.js`, and `node --check playwright/acg_restart.js`.
 
 - **COMPLETE:** `bin/acg-extend-test` now runs `node` normally, parses `--provider` from the remaining args, and re-validates AWS credentials with `aws sts get-caller-identity` after extend for AWS runs so broken sessions fail fast before `make all`/`make up` continue; committed as `0344eb3` (`fix(acg-extend-test): drop exec — add AWS credential re-validation after extend`) and pushed to `origin/fix/next-improvements-5`. Validation used `shellcheck -S warning bin/acg-extend-test`.
