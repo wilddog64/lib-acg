@@ -146,9 +146,7 @@ async function extendSandbox() {
     await page.addLocatorHandler(
       page.getByText('Your sandbox has been extended.').first(),
       async () => {
-        const _tb = page.getByText('Your sandbox has been extended.');
-        await _tb.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
-          .click({ force: true }).catch(() => {});
+        await page.keyboard.press('Escape').catch(() => {});
         await page.waitForTimeout(300);
       }
     );
@@ -193,8 +191,7 @@ async function extendSandbox() {
       const _toastBody = page.getByText('Your sandbox has been extended.');
       if (await _toastBody.isVisible({ timeout: 15000 }).catch(() => false)) {
         console.error('INFO: Dismissing "Session extended" toast...');
-        await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
-          .click({ force: true }).catch(() => {});
+        await page.keyboard.press('Escape').catch(() => {});
         await page.waitForTimeout(300);
       }
       return;
@@ -382,8 +379,7 @@ async function extendSandbox() {
     const _toastBody = page.getByText('Your sandbox has been extended.');
     if (await _toastBody.isVisible({ timeout: 10000 }).catch(() => false)) {
       console.error('INFO: Dismissing "Session extended" toast...');
-      await _toastBody.locator('xpath=ancestor::*[.//button][1]').locator('button').first()
-        .click({ force: true }).catch(() => {});
+      await page.keyboard.press('Escape').catch(() => {});
       await page.waitForTimeout(300);
     }
   } catch (error) {
