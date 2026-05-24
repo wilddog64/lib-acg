@@ -30,8 +30,9 @@ on some browser builds, causing both checks to false-positive.
 ## Fix
 
 Added `offsetParent !== null && getComputedStyle(d).display !== 'none' && getComputedStyle(d).visibility !== 'hidden'`
-to both the entry check and the local `_dismissExtendYourSessionDialog` detection and find calls.
-Matches the guard already present in `acg_restart.js`.
+to the entry check, the local `_dismissExtendYourSessionDialog` detection and find calls, and the
+`_waitForSandboxEntry` `hasExtendDialog` predicate in `acg_credentials.js`. Also applied the same
+`visibility !== 'hidden'` extension to `acg_restart.js` so all files use the identical three-part guard.
 
 **Commit:** `fb3ae33` on `fix/next-improvements-6`
 
@@ -41,4 +42,6 @@ Matches the guard already present in `acg_restart.js`.
 
 | File | Change |
 |------|--------|
-| `playwright/acg_credentials.js` | Visibility guard on entry check + local dismiss function |
+| `playwright/acg_credentials.js` | Visibility guard on entry check, local dismiss function, and `_waitForSandboxEntry` hasExtendDialog predicate |
+| `playwright/acg_restart.js` | Added `visibility !== 'hidden'` to align all guards to the same three-part predicate |
+| `.github/copilot-instructions.md` | Narrowed `addLocatorHandler` rule to toast/overlay dismissal; clarified modal dialog dismissal uses DOM clicks intentionally |
