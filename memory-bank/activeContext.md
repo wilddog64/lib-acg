@@ -2,6 +2,11 @@
 
 ## Current Branch: `fix/next-improvements-7`
 
+## Current Status (2026-05-25 — v0.3.1 bugfix sweep complete)
+- **COMPLETE:** `scripts/hooks/pre-commit` now prints deleted filename references through a `while IFS= read -r _ref` loop instead of expanding `$_refs` unquoted, preventing word-splitting and format-string surprises; committed as `4e55392` (`fix(pre-commit): quote $_refs in printf — prevent word-splitting on filenames with spaces`) and pushed to `origin/fix/next-improvements-7`. Validation passed for `shellcheck -S warning scripts/hooks/pre-commit`.
+- **COMPLETE:** `scripts/plugins/acg.sh` now returns `1` immediately when `node` is missing in `acg_check_ttl`, and emits `-1` when `REMAINING_MINS:` is absent by storing the parse result in `remaining`; committed as `4f7a1f3` (`fix(acg): acg_check_ttl — return 1 on missing node; return -1 sentinel when TTL unparseable`) and pushed to `origin/fix/next-improvements-7`. Validation passed for `shellcheck -S warning scripts/plugins/acg.sh`.
+- **COMPLETE:** `package.json` and `package-lock.json` now both report version `0.3.0`, matching the shipped release; committed as `7f1261c` (`chore(package): align package.json and package-lock.json version to 0.3.0`) and pushed to `origin/fix/next-improvements-7`. Validation passed for `node --check playwright/*.js`.
+
 **Repo created:** 2026-04-25  
 **Status:** PR #28 merged to main (2026-05-24, `ee87aeb2`); enforce_admins restored on main; next branch active (`fix/next-improvements-7`). Retrospective written to `docs/retro/2026-05-24-pr28-retrospective.md`. Next subtree pull into k3d-manager to bring visibility guard fixes.
 
