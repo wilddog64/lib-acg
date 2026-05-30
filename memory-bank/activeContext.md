@@ -2,7 +2,8 @@
 
 ## Current Branch: `fix/next-improvements-8`
 
-## Current Status (2026-05-25 — PR #29 merged; v0.3.1 bugfix sweep shipped)
+## Current Status (2026-05-30 — PR #30 open; JS navigation fix for extend-session dialog)
+- **IN FLIGHT PR #30** (`fix/next-improvements-8`): `playwright/acg_credentials.js` — replace `navLink.click()` with `window.location.assign()` + `waitForNavigation` for cloud-sandboxes SPA navigation; bypasses "Extend Your Session" pointer-event interception. CI green, Copilot review in progress.
 - **MERGED PR #29** (`a32b46ec`): v0.3.1 bugfix sweep — `git grep -F` in pre-commit dangling-ref check, `acg_check_ttl` node sentinel fixes, package version alignment. enforce_admins restored. Next branch: `fix/next-improvements-8`.
 - **SUBTREE PULLED** into k3d-manager at `3af3a4e3` on `k3d-manager-v1.4.9`.
 
