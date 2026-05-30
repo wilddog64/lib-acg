@@ -360,14 +360,9 @@ async function extractCredentials() {
         console.error(`INFO: Already on ${currentUrl} — skipping navigation`);
       } else if (targetPathname.includes('cloud-sandboxes')) {
         console.error(`INFO: SPA-navigating to cloud-sandboxes from ${currentUrl}...`);
-        const navLink = page.locator('a[href*="cloud-sandboxes"]').first();
-        const navVisible = await navLink.isVisible({ timeout: 5000 }).catch(() => false);
-        if (navVisible) {
-          await _dismissExtendYourSessionDialog();
-          await navLink.click();
-        } else {
-          await page.evaluate(url => window.location.assign(url), targetUrl);
-        }
+        // Use JS navigation — "Extend Your Session" dialog intercepts pointer events so
+        // navLink.click() times out if the dialog reappears between dismiss and click.
+        await page.evaluate(url => window.location.assign(url), targetUrl);
       } else {
         console.error(`INFO: Navigating to ${targetUrl}...`);
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
