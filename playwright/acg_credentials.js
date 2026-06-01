@@ -253,8 +253,7 @@ async function extractCredentials() {
         )
     ).catch(() => false);
     if (_entryExtendDialog) {
-      console.error('INFO: "Extend Your Session" dialog on entry — clicking Extend Session...');
-      await page.evaluate(() => {
+      const _entryClicked = await page.evaluate(() => {
         const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
           .find(d =>
             (d.innerText || '').includes('Extend Your Session') &&
@@ -262,12 +261,25 @@ async function extractCredentials() {
             getComputedStyle(d).display !== 'none' &&
             getComputedStyle(d).visibility !== 'hidden'
           );
-        if (!dialog) return;
+        if (!dialog) return false;
         const btns = Array.from(dialog.querySelectorAll('button'));
         const extendBtn = btns.find(b => /extend session/i.test(b.textContent || ''));
-        if (extendBtn) extendBtn.click();
-      }).catch(() => {});
-      await page.waitForTimeout(1500);
+        if (extendBtn) { extendBtn.click(); return true; }
+        return false;
+      }).catch(() => false);
+      if (_entryClicked) {
+        console.error('INFO: "Extend Your Session" dialog on entry — clicked Extend Session');
+      } else {
+        console.error('WARN: "Extend Your Session" dialog on entry — Extend Session button not found');
+      }
+      const _entryClosed = await page.waitForFunction(
+        () => !Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
+          .some(d => (d.innerText || '').includes('Extend Your Session')),
+        { timeout: 5000 }
+      ).then(() => true).catch(() => false);
+      if (!_entryClosed) {
+        console.error('WARN: "Extend Your Session" dialog still visible after entry click — continuing anyway');
+      }
     }
 
     const _dismissExtendYourSessionDialog = async () => {
@@ -281,10 +293,9 @@ async function extractCredentials() {
           )
       ).catch(() => false);
       if (_dialogVisible) {
-        console.error('INFO: "Extend Your Session" dialog detected — clicking Extend Session via DOM...');
         // Use DOM click (not Playwright keyboard) — Escape closes the panel, not just the dialog.
         // Always click "Extend Session" to preserve the TTL; never Cancel ("can only be done once").
-        await page.evaluate(() => {
+        const _clicked = await page.evaluate(() => {
           const dialog = Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
             .find(d =>
               (d.innerText || '').includes('Extend Your Session') &&
@@ -292,14 +303,20 @@ async function extractCredentials() {
               getComputedStyle(d).display !== 'none' &&
               getComputedStyle(d).visibility !== 'hidden'
             );
-          if (!dialog) return;
+          if (!dialog) return false;
           const btns = Array.from(dialog.querySelectorAll('button'));
           const extendBtn = btns.find(b => /extend session/i.test(b.textContent || ''));
-          if (extendBtn) { extendBtn.click(); return; }
+          if (extendBtn) { extendBtn.click(); return true; }
           // Fallback: any button that isn't Cancel/close (should not reach here)
           const fallback = btns.find(b => !/cancel|no thanks|close|dismiss/i.test(b.textContent || b.getAttribute('aria-label') || ''));
-          if (fallback) fallback.click();
-        }).catch(() => {});
+          if (fallback) { fallback.click(); return true; }
+          return false;
+        }).catch(() => false);
+        if (_clicked) {
+          console.error('INFO: "Extend Your Session" dialog detected — clicked Extend Session via DOM');
+        } else {
+          console.error('WARN: "Extend Your Session" dialog detected but Extend Session button not found');
+        }
         await page.waitForTimeout(1000);
         const _dialogClosed = await page.waitForFunction(
           () => !Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="dialog"], [role="alertdialog"]'))
