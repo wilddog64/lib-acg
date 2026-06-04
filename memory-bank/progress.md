@@ -2,7 +2,7 @@
 
 ## Playwright Screenshot Diagnosis Track — `fix/playwright-screenshot-diagnosis` (active)
 
-- **COMPLETE:** phase A screenshot diagnosis on `fix/playwright-screenshot-diagnosis` finished. `playwright/acg_credentials.js` and `playwright/acg_restart.js` now save `/tmp/k3dm-acg-screenshot-<ts>.png` on unhandled errors and print `INFO: Screenshot saved to ...` to stderr; `acg_restart.js` hoists `page` to outer scope so the catch block can capture screenshots. Commit: `91193d5f` (`feat(playwright): save screenshot on failure for AI diagnosis`). Validation: `node --check playwright/acg_credentials.js`, `node --check playwright/acg_restart.js`.
+- **COMPLETE:** phase A screenshot diagnosis on `fix/playwright-screenshot-diagnosis` finished. `playwright/acg_credentials.js` and `playwright/acg_restart.js` now save `/tmp/k3dm-acg-screenshot-<ts>.png` on unhandled errors and print `INFO: Screenshot saved to ...` to stderr; `acg_restart.js` hoists `page` to outer scope so the catch block can capture screenshots. Commit: `77c7dcc` (`feat(playwright): save screenshot on failure for AI diagnosis`). Validation: `node --check playwright/acg_credentials.js`, `node --check playwright/acg_restart.js`.
 
 ## v0.3.0 Track — `fix/next-improvements-7` (merged)
 
