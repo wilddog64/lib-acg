@@ -627,6 +627,13 @@ async function extractCredentials() {
 
   } catch (error) {
     console.error(`ERROR: ${error.message}`);
+    if (page) {
+      try {
+        const _ssPath = `/tmp/k3dm-acg-screenshot-${Date.now()}.png`;
+        await page.screenshot({ path: _ssPath, fullPage: false });
+        console.error(`INFO: Screenshot saved to ${_ssPath}`);
+      } catch (_) {}
+    }
     throw error;
   } finally {
     if (page && _pageWasCreated) {
