@@ -1,6 +1,6 @@
 # Bugfix: acg_credentials — sign-in click fails with "element outside viewport"
 
-**Branch:** `main`
+**Branch:** `fix/signin-click-outside-viewport` (merged to `main` via PR)
 **File:** `playwright/acg_credentials.js`
 
 ---
@@ -27,7 +27,7 @@ to abort when the element is unreachable due to an overlapping session-timeout m
 
 ## Fix
 
-### Change 1 — `playwright/acg_credentials.js`: add `{ force: true }` to sign-in click
+### Change 1 — `playwright/acg_credentials.js`: use DOM-triggered click to bypass intercepting overlay
 
 **Exact old block:**
 ```javascript
@@ -39,7 +39,7 @@ to abort when the element is unreachable due to an overlapping session-timeout m
 **Exact new block:**
 ```javascript
   console.error('INFO: Not signed in — clicking Sign In...');
-  await signInLink.click({ force: true });
+  await signInLink.evaluate(el => el.click());
   await page.waitForURL('**id.pluralsight.com**', { timeout: 300000 }); // "Patient Bridge"
 ```
 
@@ -56,15 +56,15 @@ to abort when the element is unreachable due to an overlapping session-timeout m
 ## Rules
 
 - `node --check playwright/acg_credentials.js` — zero errors
-- No other files touched
+- No other code files touched
 
 ---
 
 ## Definition of Done
 
-- [ ] `signInLink.click()` uses `{ force: true }`
+- [ ] `signInLink` uses `evaluate(el => el.click())` (DOM-triggered, bypasses intercepting overlay)
 - [ ] `node --check playwright/acg_credentials.js` clean
-- [ ] Committed and pushed to `main`
+- [ ] Committed, pushed to `fix/signin-click-outside-viewport`, and merged to `main` via PR
 
 **Commit message (exact):**
 ```
@@ -73,5 +73,5 @@ fix(playwright): force sign-in click to bypass session-timeout overlay
 
 ## What NOT to Do
 
-- Do NOT modify any file other than `playwright/acg_credentials.js`
+- Do NOT modify any code file other than `playwright/acg_credentials.js`
 - Do NOT skip pre-commit hooks (`--no-verify`)
