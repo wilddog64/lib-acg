@@ -338,6 +338,23 @@ async function extractCredentials() {
       ).catch(() => console.error('WARN: Skeleton loaders did not clear after login — proceeding anyway'));
     }
 
+    // 2c. Dismiss any survey/feedback modal Pluralsight injects over the page
+    try {
+      const surveyClose = page.locator('button:has-text("Close"), button[aria-label="Close"], button:has-text("No thanks"), button:has-text("Dismiss")').first();
+      if (await surveyClose.isVisible({ timeout: 3000 }).catch(() => false)) {
+        console.error('INFO: Dismissing Pluralsight survey modal...');
+        await surveyClose.click();
+        await page.waitForTimeout(500);
+      } else {
+        const thanksModal = page.locator('text=Thanks for your response!').first();
+        if (await thanksModal.isVisible({ timeout: 2000 }).catch(() => false)) {
+          console.error('INFO: Dismissing survey modal via Escape...');
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(500);
+        }
+      }
+    } catch (_) {}
+
     // 3. Handle Sandbox Start/Open Flow
     // Skip only if credentials are already populated (not just visible — inputs render empty before start)
     const _firstCredInput = page.locator('input[aria-label="Copyable input"]').first();
