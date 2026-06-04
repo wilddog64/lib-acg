@@ -630,7 +630,8 @@ async function extractCredentials() {
     if (page) {
       try {
         const _ssPath = `/tmp/k3dm-acg-screenshot-${Date.now()}.png`;
-        await page.screenshot({ path: _ssPath, fullPage: false });
+        const _ssBuffer = await page.screenshot({ fullPage: false });
+        fs.writeFileSync(_ssPath, _ssBuffer, { mode: 0o600 });
         console.error(`INFO: Screenshot saved to ${_ssPath}`);
       } catch (_) {}
     }
