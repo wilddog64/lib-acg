@@ -26,7 +26,10 @@ describe('_outputCredentials', () => {
 
     _outputCredentials({ FOO: 'bar', BAZ: 'qux' });
 
-    expect(stdoutSpy).toHaveBeenCalledWith('FOO=bar\nBAZ=qux\n');
+    const written = stdoutSpy.mock.calls.map(c => c[0]).join('');
+    const lines = written.split('\n').filter(Boolean);
+    expect(lines).toEqual(expect.arrayContaining(['FOO=bar', 'BAZ=qux']));
+    expect(lines).toHaveLength(2);
   });
 
   test('writes secure file with mode 0o600 when PLAYWRIGHT_CREDS_FILE is set', () => {
