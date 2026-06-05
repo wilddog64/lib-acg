@@ -73,7 +73,7 @@ bin/acg-up --no-login-prompt
 ## Rules
 
 - `node --check playwright/lib/sandbox.js` — must pass with zero errors
-- No other files touched
+- Code change limited to `playwright/lib/sandbox.js`; this bug spec doc and memory-bank updates are also expected
 
 ---
 
@@ -93,7 +93,7 @@ fix(sandbox): remove navLink.click() path — always use window.location.assign(
 
 ## What NOT to Do
 
-- Do NOT create a PR
+- Do NOT create a PR yourself — Claude handles PR creation after verifying the commit
 - Do NOT skip pre-commit hooks (`--no-verify`)
 - Do NOT modify any file other than `playwright/lib/sandbox.js`
 - Do NOT commit to `main` — work on `feat/v0.1.1`
