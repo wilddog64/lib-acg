@@ -1,8 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.1 Track — `feat/v0.1.1` (PR #36 open)
+## v0.1.1 Track — `feat/v0.1.1` (MERGED PR #36)
 
-- **COMPLETE:** `playwright/lib/sandbox.js` — removed `navLink.click()` conditional in `navigateToSandbox()` that navigated to `s2.pluralsight.com/404.html`; always uses `window.location.assign()`. Commit: `21d6e27` (`fix(sandbox): remove navLink.click() path — always use window.location.assign()`). Bug spec: `docs/bugs/2026-06-05-sandbox-navlink-click-regression.md`. PR #36 open, CI green, Copilot 2 findings fixed (`e0057c3`), all threads resolved, enforce_admins disabled — ready to merge.
+- **MERGED PR #36** (`f63b7ca3`): `playwright/lib/sandbox.js` — removed `navLink.click()` conditional in `navigateToSandbox()` that navigated to `s2.pluralsight.com/404.html`; always uses `window.location.assign()`. Commit: `21d6e27` (`fix(sandbox): remove navLink.click() path — always use window.location.assign()`). Bug spec: `docs/bugs/2026-06-05-sandbox-navlink-click-regression.md`. Retrospective: `docs/retro/2026-06-05-v0.1.1-retrospective.md`. Enforce_admins restored.
 
 ## Playwright Screenshot Diagnosis Track — `fix/playwright-screenshot-diagnosis` (merged to main)
 
