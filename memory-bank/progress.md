@@ -1,8 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.2 Track — `feat/v0.1.2` (PR #37 open)
+## v0.1.2 Track — (MERGED PR #37)
 
-- **IN PROGRESS:** `playwright/lib/sandbox.js` — `scrollIntoViewIfNeeded()` added before `startButton`, `startButton2`, and `resumeButton` clicks; commit `86472da` (`fix(sandbox): scrollIntoViewIfNeeded before Start/Resume Sandbox clicks`). Bug spec: `docs/bugs/2026-06-05-sandbox-start-button-outside-viewport.md`. PR #37 open, CI green, Copilot findings being addressed.
+- **MERGED PR #37** (`4d5aa477`): `playwright/lib/sandbox.js` — `scrollIntoViewIfNeeded()` added before `startButton`, `startButton2`, and `resumeButton` clicks; commit `86472da` (`fix(sandbox): scrollIntoViewIfNeeded before Start/Resume Sandbox clicks`). Bug spec: `docs/bugs/2026-06-05-sandbox-start-button-outside-viewport.md`. Retrospective: `docs/retro/2026-06-05-v0.1.2-retrospective.md`. Next branch: `feat/v0.1.3`.
 
 ## v0.1.1 Track — `feat/v0.1.1` (MERGED PR #36)
 
