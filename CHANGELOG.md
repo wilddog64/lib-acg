@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- `playwright/acg_credentials.js`: refactored from 519-line monolith into provider pattern — `lib/browser.js` (CDP connect), `lib/sandbox.js` (navigation/sign-in/sandbox start), `lib/output.js` (credential output), `providers/aws.js`, `providers/gcp.js`, `providers/azure.js` (stub); AWS and GCP behavior unchanged; Jest unit tests added (`npm test`)
+
 ### Fixed
 - `acg_extend.js`: wait for SPA render after Ghost State re-navigation and increase Delete Sandbox button visibility timeout to 30s so SPA re-navigation can find the button reliably
 - `acg_extend.js`: narrow midnight-wrap guard to ≤ 60 min so expired sandboxes report a negative TTL instead of a large positive value
