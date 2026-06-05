@@ -14,7 +14,7 @@ async function extractCredentials(page, outputFn) {
     const ariaLabel = await allInputs[i].getAttribute('aria-label');
     const val = await allInputs[i].inputValue().catch(() => '');
     const visible = await allInputs[i].isVisible();
-    console.error(`INFO: [${i}] <${tag}> aria-label="${ariaLabel}" visible=${visible} value="${val.slice(0, 40)}"`);
+    console.error(`INFO: [${i}] <${tag}> aria-label="${ariaLabel}" visible=${visible} value="${val.length > 0 ? '[set]' : '[empty]'}"`);
   }
 
   const inputs = await page.locator('input[aria-label="Copyable input"]').all();
@@ -44,6 +44,7 @@ async function extractCredentials(page, outputFn) {
   const keyPath = path.join(keyDir, 'gcp-service-account.json');
   fs.mkdirSync(keyDir, { recursive: true });
   fs.writeFileSync(keyPath, serviceAccountJson, { mode: 0o600 });
+  fs.chmodSync(keyPath, 0o600);
   console.error(`INFO: Service account key written to ${keyPath}`);
 
   outputFn({

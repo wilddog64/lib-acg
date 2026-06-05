@@ -49,6 +49,7 @@ async function navigateToSandbox(page, targetUrl) {
       await navLink.click();
     } else {
       await page.evaluate(url => window.location.assign(url), targetUrl);
+      await page.waitForLoadState('domcontentloaded', { timeout: 60000 }).catch(() => {});
     }
   } else {
     console.error(`INFO: Navigating to ${targetUrl}...`);
@@ -143,9 +144,17 @@ async function _dismissExtendYourSessionDialog(page) {
   ).catch(() => false);
   if (!dialogVisible) return;
 
-  console.error('INFO: "Extend Your Session" dialog detected — activating tab and pressing Enter on focused close button...');
+  console.error('INFO: "Extend Your Session" dialog detected — clicking Extend button...');
   await page.bringToFront();
-  await page.keyboard.press('Enter').catch(() => {});
+  const extendBtn = page.locator(
+    '[data-testid="extend-sandbox-modal"] button:has-text("Extend"), [role="alertdialog"] button:has-text("Extend"), [role="dialog"] button:has-text("Extend")'
+  ).first();
+  const extendVisible = await extendBtn.isVisible({ timeout: 2000 }).catch(() => false);
+  if (extendVisible) {
+    await extendBtn.click().catch(() => {});
+  } else {
+    await page.keyboard.press('Enter').catch(() => {});
+  }
   await page.waitForTimeout(1000);
   const dialogClosed = await page.waitForFunction(
     () => !Array.from(document.querySelectorAll('[role="dialog"]'))
@@ -185,6 +194,10 @@ async function startSandbox(page, targetUrl) {
   }
 
   console.error('INFO: Looking for Start/Open button...');
+  await page.addLocatorHandler(
+    page.locator('text=/sandbox has been extended/i'),
+    async () => { await page.waitForTimeout(500); }
+  ).catch(() => {});
   await _dismissExtendYourSessionDialog(page);
   let sandboxEntryReady = await _waitForSandboxEntrySoft(page, 30000);
   const retryPathname = (() => {
@@ -221,7 +234,7 @@ async function startSandbox(page, targetUrl) {
     await _waitForCredentials(page);
   } else if (await openButton.isVisible({ timeout: 5000 }).catch(() => false)) {
     console.error('INFO: Clicking Open Sandbox...');
-    await openButton.click();
+    await openButton.click({ force: true });
     await page.waitForTimeout(3000);
 
     const startButton2 = page.locator('button:has-text("Start Sandbox")').first();

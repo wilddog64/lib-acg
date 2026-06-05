@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "check": "node --check playwright/*.js playwright/lib/*.js playwright/providers/*.js",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "npx playwright test"
   },
   "dependencies": {
     "playwright": "^1.58.2"
