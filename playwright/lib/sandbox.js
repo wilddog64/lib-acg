@@ -351,14 +351,26 @@ async function startSandbox(page, targetUrl, provider) {
 
     let startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 30000);
     if (!startButton2) {
-      console.error(`WARN: Scoped Start Sandbox not found for ${providerLabel} — trying any visible enabled Start Sandbox as fallback...`);
+      console.error(`WARN: Scoped Start Sandbox not found for ${providerLabel} — trying provider-scoped fallback...`);
       const allStart = page.locator('button:has-text("Start Sandbox")');
       const count = await allStart.count().catch(() => 0);
+      const _fbOthers = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(p => !new RegExp(p, 'i').test(providerLabel));
       for (let i = 0; i < count; i++) {
         const btn = allStart.nth(i);
         const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
         const enabled = await btn.isEnabled({ timeout: 300 }).catch(() => false);
-        if (visible && enabled) { startButton2 = btn; break; }
+        if (!visible || !enabled) continue;
+        const inTargetCard = await btn.evaluate((el, [pLabel, others]) => {
+          let node = el.parentElement;
+          for (let j = 0; j < 8; j++) {
+            if (!node) break;
+            const t = node.innerText || '';
+            if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
+            node = node.parentElement;
+          }
+          return false;
+        }, [providerLabel, _fbOthers]).catch(() => false);
+        if (inTargetCard) { startButton2 = btn; break; }
       }
     }
     if (startButton2) {

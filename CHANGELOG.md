@@ -13,6 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `package.json` + `package-lock.json`: align version fields to `0.3.0` (were `0.2.0` and `0.1.0` respectively)
 
 ### Fixed
+- `playwright/lib/sandbox.js` and `playwright/acg_restart.js`: scope the post-Open-Sandbox `startButton2` fallback and the restart-flow Delete/Open/Start button lookups to the target provider card so AWS no longer wins the DOM-first fallback when Azure is the intended sandbox
 - `playwright/providers/azure.js`: add Application Client ID and Secret extraction so Azure service-principal creds are emitted as `AZURE_CLIENT_ID` and `AZURE_CLIENT_SECRET` when the sandbox shows those fields instead of username/password
 - `playwright/lib/sandbox.js`: make `_dismissExtendYourSessionDialog` click the Extend button with `force: true` and check `credentialsAlreadyVisible` before `_deleteConflictingSandbox` so already-running sandboxes skip the unnecessary delete attempt
 - `playwright/lib/sandbox.js`: increase the post-Open-Sandbox `startButton2` search timeout to 30s and add a visible/enabled fallback search so Azure can still start when the scoped lookup misses the button on a slow panel transition
