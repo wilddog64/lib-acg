@@ -282,13 +282,7 @@ async function startSandbox(page, targetUrl, provider) {
     try { return new URL(targetUrl).pathname; } catch { return ''; }
   })();
   if (!sandboxEntryReady && retryPathname.includes('cloud-sandboxes') && !page.url().includes('cloud-sandboxes')) {
-    console.error(`INFO: Sandbox route not active (${page.url()}) — retrying via Hands-on route...`);
-    await page.goto('https://app.pluralsight.com/hands-on', { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForFunction(() => {
-      return document.readyState === 'complete' ||
-        Boolean(document.querySelector('a[href*="cloud-sandboxes"]')) ||
-        document.body.innerText.includes('Cloud Sandboxes');
-    }, { timeout: 15000 }).catch(() => console.error('WARN: Hands-on route did not settle before sandbox retry'));
+    console.error(`INFO: Sandbox route not active (${page.url()}) — navigating directly back to sandbox URL...`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
     sandboxEntryReady = await _waitForSandboxEntrySoft(page, 30000);
   }

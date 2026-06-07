@@ -13,6 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `package.json` + `package-lock.json`: align version fields to `0.3.0` (were `0.2.0` and `0.1.0` respectively)
 
 ### Fixed
+- `playwright/lib/sandbox.js`: remove the intermediate `https://app.pluralsight.com/hands-on` hop from the sandbox retry block so a drifted page goes directly back to `targetUrl` instead of landing on Pluralsight's 404 page and losing the sandbox context
 - `playwright/lib/sandbox.js` and `playwright/providers/azure.js`: add provider exclusion checks to ancestor walks so shared containers no longer match the wrong provider card when multiple sandbox providers are visible
 - `playwright/lib/sandbox.js`: replace the raw DOM `dispatchEvent(new MouseEvent(...))` confirm-dialog path with a Playwright `confirmBtn.click({ force: true })` so React's synthetic event system sees the Delete Sandbox confirmation and actually closes the conflicting sandbox
 - `playwright/lib/sandbox.js`: scope `_waitForCredentials(page, providerLabel)` to the active provider card and update all three call sites so AWS credentials no longer short-circuit Azure startup; `playwright/providers/azure.js` now reads only Azure-scoped copyable inputs before mapping Username/Password/Subscription/Tenant into `AZURE_*` variables
