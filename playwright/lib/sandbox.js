@@ -179,7 +179,98 @@ async function _waitForCredentials(page) {
   throw new Error('Locator polling timed out after 420000ms waiting for input[aria-label="Copyable input"] to have a non-empty value.');
 }
 
-async function startSandbox(page, targetUrl) {
+async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() <= deadline) {
+    const allBtns = page.locator(`button:has-text("${buttonText}")`);
+    const count = await allBtns.count().catch(() => 0);
+    for (let i = 0; i < count; i++) {
+      const btn = allBtns.nth(i);
+      const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+      if (!visible) continue;
+      const inCard = await btn.evaluate((el, label) => {
+        let node = el.parentElement;
+        for (let j = 0; j < 8; j++) {
+          if (!node) break;
+          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
+          node = node.parentElement;
+        }
+        return false;
+      }, providerLabel).catch(() => false);
+      if (inCard) return btn;
+    }
+    if (Date.now() < deadline) await page.waitForTimeout(500);
+  }
+  return null;
+}
+
+async function _deleteConflictingSandbox(page, targetProvider) {
+  const _providerLabels = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' };
+  const targetLabel = _providerLabels[targetProvider] || targetProvider;
+
+  const conflictingLabel = await page.evaluate((tLabel) => {
+    const candidates = [
+      { label: 'AWS', keywords: ['AWS'] },
+      { label: 'Google Cloud', keywords: ['Google Cloud', 'GCP'] },
+      { label: 'Azure', keywords: ['Azure'] },
+    ].filter(c => !c.keywords.some(k => tLabel.toLowerCase().includes(k.toLowerCase())));
+
+    for (const c of candidates) {
+      const found = Array.from(document.querySelectorAll('*'))
+        .some(el => {
+          const t = el.innerText || '';
+          return t.includes('Auto Shutdown') && c.keywords.some(k => t.includes(k));
+        });
+      if (found) return c.label;
+    }
+    return null;
+  }, targetLabel).catch(() => null);
+
+  if (!conflictingLabel) return;
+
+  console.error(`INFO: Running ${conflictingLabel} sandbox detected — deleting before starting ${targetLabel}...`);
+
+  let deleteBtn = await _findScopedButton(page, 'Delete Sandbox', conflictingLabel, 2000);
+  if (!deleteBtn) {
+    const openConflictBtn = await _findScopedButton(page, 'Open Sandbox', conflictingLabel, 5000);
+    if (!openConflictBtn) {
+      console.error(`WARN: Could not find Open Sandbox for conflicting ${conflictingLabel} sandbox — proceeding anyway`);
+      return;
+    }
+    await openConflictBtn.click({ force: true });
+    deleteBtn = await _findScopedButton(page, 'Delete Sandbox', conflictingLabel, 15000);
+  }
+
+  if (!deleteBtn) {
+    console.error(`WARN: Delete Sandbox not found for ${conflictingLabel} — proceeding anyway`);
+    return;
+  }
+
+  await deleteBtn.scrollIntoViewIfNeeded().catch(() => {});
+  await deleteBtn.click({ force: true });
+
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => {
+    const dialog = document.querySelector('[role="alertdialog"]');
+    if (!dialog) return;
+    const btn = Array.from(dialog.querySelectorAll('button'))
+      .find(b => /delete sandbox/i.test(b.textContent || ''));
+    if (btn) btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  }).catch(() => {});
+
+  console.error(`INFO: Waiting for ${conflictingLabel} sandbox deletion (up to 180s)...`);
+  const deleted = await _findScopedButton(page, 'Start Sandbox', conflictingLabel, 180000);
+  if (deleted) {
+    console.error(`INFO: ${conflictingLabel} sandbox deleted.`);
+  } else {
+    console.error(`WARN: ${conflictingLabel} sandbox deletion may not be complete — proceeding anyway`);
+  }
+}
+
+async function startSandbox(page, targetUrl, provider) {
+  provider = provider || 'aws';
+  const _providerLabels = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' };
+  const providerLabel = _providerLabels[provider] || provider;
   const firstCredInput = page.locator('input[aria-label="Copyable input"]').first();
   const firstCredVisible = await firstCredInput.isVisible({ timeout: 3000 }).catch(() => false);
   const firstCredValue = firstCredVisible ? await firstCredInput.inputValue().catch(() => '') : '';
@@ -215,11 +306,13 @@ async function startSandbox(page, targetUrl) {
     console.error('WARN: Timed out waiting for sandbox buttons or credentials — proceeding anyway');
   }
 
-  const startButton = page.locator('button:has-text("Start Sandbox")').first();
-  const openButton = page.locator('button:has-text("Open Sandbox")').first();
-  const resumeButton = page.locator('button:has-text("Resume"), button:has-text("Resume Sandbox")').first();
+  await _deleteConflictingSandbox(page, provider);
 
-  if (await startButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+  const startButton = await _findScopedButton(page, 'Start Sandbox', providerLabel, 5000);
+  const openButton = await _findScopedButton(page, 'Open Sandbox', providerLabel, 5000);
+  const resumeButton = await _findScopedButton(page, 'Resume', providerLabel, 5000);
+
+  if (startButton) {
     const startEnabled = await startButton.isEnabled({ timeout: 1000 }).catch(() => false);
     if (startEnabled) {
       console.error('INFO: Clicking Start Sandbox...');
@@ -229,19 +322,38 @@ async function startSandbox(page, targetUrl) {
       console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
     }
     await _waitForCredentials(page);
-  } else if (await openButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+  } else if (openButton) {
     console.error('INFO: Clicking Open Sandbox...');
     await openButton.click({ force: true });
     await page.waitForTimeout(3000);
 
-    const startButton2 = page.locator('button:has-text("Start Sandbox")').first();
-    if (await startButton2.isVisible({ timeout: 5000 }).catch(() => false)) {
-      console.error('INFO: Clicking Start Sandbox (Step 2)...');
-      await startButton2.scrollIntoViewIfNeeded().catch(() => {});
-      await startButton2.click({ force: true });
+    const conflictWarning = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('*'))
+        .some(el => (el.innerText || '').includes('You may have only one active sandbox at a time'))
+    ).catch(() => false);
+    if (conflictWarning) {
+      console.error('WARN: Conflict warning still visible after Open Sandbox — retrying conflict deletion...');
+      await _deleteConflictingSandbox(page, provider);
+      const retryOpen = await _findScopedButton(page, 'Open Sandbox', providerLabel, 10000);
+      if (retryOpen) {
+        await retryOpen.click({ force: true });
+        await page.waitForTimeout(3000);
+      }
+    }
+
+    const startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 5000);
+    if (startButton2) {
+      const startEnabled2 = await startButton2.isEnabled({ timeout: 1000 }).catch(() => false);
+      if (startEnabled2) {
+        console.error('INFO: Clicking Start Sandbox (Step 2)...');
+        await startButton2.scrollIntoViewIfNeeded().catch(() => {});
+        await startButton2.click({ force: true });
+      } else {
+        console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
+      }
     }
     await _waitForCredentials(page);
-  } else if (await resumeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+  } else if (resumeButton) {
     console.error('INFO: Clicking Resume Sandbox...');
     await resumeButton.scrollIntoViewIfNeeded().catch(() => {});
     await resumeButton.click({ force: true });
