@@ -172,6 +172,11 @@ async function _waitForCredentials(page, providerLabel) {
       const value = await inputs.first().inputValue().catch(() => '');
       if (value.trim().length > 0) return;
     }
+    const reopenBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 0);
+    if (reopenBtn) {
+      console.error(`INFO: ${providerLabel} panel closed — re-opening to retrieve credentials...`);
+      await reopenBtn.click({ force: true }).catch(() => {});
+    }
     await page.waitForTimeout(2000);
   }
   throw new Error(`Timed out after 420000ms waiting for ${providerLabel} credentials to populate.`);
