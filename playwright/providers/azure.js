@@ -1,12 +1,14 @@
 async function extractCredentials(page, outputFn) {
   await page.waitForFunction(() => {
+    const others = ['AWS', 'Google Cloud', 'GCP'];
     const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
     return inputs.some(inp => {
       if (!inp.value.trim()) return false;
       let node = inp.parentElement;
       for (let j = 0; j < 12; j++) {
         if (!node) break;
-        if (/azure/i.test(node.innerText || '')) return true;
+        const t = node.innerText || '';
+        if (/azure/i.test(t) && !others.some(p => t.includes(p))) return true;
         node = node.parentElement;
       }
       return false;
@@ -14,13 +16,15 @@ async function extractCredentials(page, outputFn) {
   }, { timeout: 15000 });
 
   const azureInputs = await page.evaluate(() => {
+    const others = ['AWS', 'Google Cloud', 'GCP'];
     const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
     return inputs
       .filter(inp => {
         let node = inp.parentElement;
         for (let j = 0; j < 12; j++) {
           if (!node) break;
-          if (/azure/i.test(node.innerText || '')) return true;
+          const t = node.innerText || '';
+          if (/azure/i.test(t) && !others.some(p => t.includes(p))) return true;
           node = node.parentElement;
         }
         return false;

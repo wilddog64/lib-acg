@@ -167,20 +167,11 @@ async function _waitForCredentials(page, providerLabel) {
   const deadline = Date.now() + 420000;
   while (Date.now() < deadline) {
     await _dismissExtendYourSessionDialog(page);
-    const found = await page.evaluate((pLabel) => {
-      const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
-      for (const input of inputs) {
-        if (!input.value.trim()) continue;
-        let node = input.parentElement;
-        for (let j = 0; j < 12; j++) {
-          if (!node) break;
-          if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
-          node = node.parentElement;
-        }
-      }
-      return false;
-    }, providerLabel).catch(() => false);
-    if (found) return;
+    const inputs = page.locator('input[aria-label="Copyable input"]');
+    if (await inputs.count() > 0) {
+      const value = await inputs.first().inputValue().catch(() => '');
+      if (value.trim().length > 0) return;
+    }
     await page.waitForTimeout(2000);
   }
   throw new Error(`Timed out after 420000ms waiting for ${providerLabel} credentials to populate.`);
@@ -196,10 +187,14 @@ async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
       const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
       if (!visible) continue;
       const inCard = await btn.evaluate((el, label) => {
+        const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
+          p => !new RegExp(p, 'i').test(label)
+        );
         let node = el.parentElement;
         for (let j = 0; j < 8; j++) {
           if (!node) break;
-          if (new RegExp(label, 'i').test(node.innerText || '')) return true;
+          const t = node.innerText || '';
+          if (new RegExp(label, 'i').test(t) && !others.some(p => t.includes(p))) return true;
           node = node.parentElement;
         }
         return false;
@@ -305,13 +300,17 @@ async function startSandbox(page, targetUrl, provider) {
   await _deleteConflictingSandbox(page, provider);
 
   const credentialsAlreadyVisible = await page.evaluate((pLabel) => {
+    const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
+      p => !new RegExp(p, 'i').test(pLabel)
+    );
     const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
     for (const input of inputs) {
       if (!input.value.trim()) continue;
       let node = input.parentElement;
       for (let j = 0; j < 12; j++) {
         if (!node) break;
-        if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
+        const t = node.innerText || '';
+        if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
         node = node.parentElement;
       }
     }
