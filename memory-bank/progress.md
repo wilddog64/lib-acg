@@ -1,6 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.4 Track — `feat/v0.1.4` (COMPLETE)
+## v0.1.4 Track — `feat/v0.1.4` (IN PROGRESS)
+
+- **OPEN:** `_waitForCredentials` panel re-open — spec: `docs/bugs/2026-06-07-wait-for-credentials-panel-auto-closes.md`
 
 - **COMPLETE:** Sandbox cycling provider-scoping fix — lib-acg commit `c83a997` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; `playwright/lib/sandbox.js` now uses a provider-scoped fallback when the scoped `Start Sandbox` search times out, so the fallback loop only accepts a visible+enabled `Start Sandbox` inside the target provider card; `playwright/acg_restart.js` now uses the same exclusion-aware `_findScopedButton` logic and scopes the Delete/Open/Start lookups to the target provider card, including the `_startBtnPanelScoped` direct-start path; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the sandbox-cycling regression; validation used `node --check playwright/lib/sandbox.js`, `node --check playwright/acg_restart.js`, `git diff --check`, and `make check lint test`; commit message: `fix(sandbox,acg_restart): scope startButton2 fallback and acg_restart button lookups to target provider`
 
