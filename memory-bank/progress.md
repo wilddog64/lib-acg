@@ -1,5 +1,12 @@
 # Progress — lib-acg
 
+## v0.1.3 Track — `feat/v0.1.3` (IN PROGRESS — PR creation)
+
+- **Bug spec:** `docs/bugs/2026-06-07-sandbox-start-button-click-force-missing.md` — `playwright/lib/sandbox.js` missing `{ force: true }` on Start/Resume Sandbox clicks; regression from v0.1.2 where scroll was added but force flag was omitted. Layout shift post-scroll (from `addLocatorHandler` for "sandbox has been extended") still fails the click.
+- **Fix committed:** `07a9b29` (`fix(sandbox): add force:true to Start/Resume Sandbox clicks — survive layout shift after handler fires`) — adds `{ force: true }` to `startButton`, `startButton2`, `resumeButton`.
+- **CHANGELOG updated:** `a0ccd95` (`chore(changelog): add Unreleased entry for force:true sandbox clicks`) — added entry to [Unreleased] section describing the fix.
+- **PR creation in progress** — PR #38 target.
+
 ## v0.1.2 Track — (MERGED PR #37)
 
 - **MERGED PR #37** (`4d5aa477`): `playwright/lib/sandbox.js` — `scrollIntoViewIfNeeded()` added before `startButton`, `startButton2`, and `resumeButton` clicks; commit `86472da` (`fix(sandbox): scrollIntoViewIfNeeded before Start/Resume Sandbox clicks`). Bug spec: `docs/bugs/2026-06-05-sandbox-start-button-outside-viewport.md`. Retrospective: `docs/retro/2026-06-05-v0.1.2-retrospective.md`. Next branch: `feat/v0.1.3`.
