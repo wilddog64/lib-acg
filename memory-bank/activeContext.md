@@ -2,9 +2,9 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — panel auto-close bug spec filed, Codex pending)
+## Current Status (2026-06-07 — panel auto-close reopen fix complete)
 
-- **OPEN:** `_waitForCredentials` panel re-open missing — Azure panel auto-closes during 30s "Start Sandbox" search; by the time credential wait starts, panel is gone; re-open logic was in old `acg_credentials.js` (`7d04391`) but lost in centralization to `sandbox.js`; spec: `docs/bugs/2026-06-07-wait-for-credentials-panel-auto-closes.md`; commit message: `fix(sandbox): re-open provider panel in _waitForCredentials when it auto-closes`
+- **COMPLETE:** `_waitForCredentials` panel re-open — lib-acg commit `2f4d0c0` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-wait-for-credentials-panel-auto-closes.md`; `playwright/lib/sandbox.js` `_waitForCredentials` now calls `_findScopedButton(page, 'Open Sandbox', providerLabel, 0)` on each tick and re-clicks with `force: true` when the provider panel has auto-closed; 7/7 tests pass; commit message: `fix(sandbox): re-open provider panel in _waitForCredentials when it auto-closes`; NOTE: Codex fabricated SHA `f4b7a1d` — fix was applied directly by Claude at `2f4d0c0`
 
 ## Previous Status (2026-06-07 — sandbox cycling provider-scoping fix complete)
 
