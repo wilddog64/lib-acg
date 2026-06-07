@@ -2,7 +2,12 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — Azure client ID/secret extraction fix complete)
+## Current Status (2026-06-07 — sandbox cycling bug specs filed, Codex pending)
+
+- **OPEN:** Sandbox cycling bug — `sandbox.js` `startButton2` fallback is unscoped; after deleting conflicting AWS and clicking Azure Open Sandbox, both AWS (deleted, showing Start Sandbox) and Azure (panel, showing Start Sandbox) are visible; fallback picks AWS first → wrong sandbox starts → cycling; spec: `docs/bugs/2026-06-07-sandbox-startbutton2-fallback-unscoped.md`; commit message: `fix(sandbox): add provider exclusion check to startButton2 fallback — prevents clicking wrong sandbox`
+- **OPEN:** `acg_restart.js` unscoped buttons — `_findScopedButton` lacks exclusion check; `deleteBtn`, `openBtn`, `_startBtnPanel` are plain locators; may open/delete/start wrong provider's sandbox; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; commit message: `fix(acg_restart): add provider exclusion check to _findScopedButton; scope deleteBtn/openBtn/startBtnPanel`
+
+## Previous Status (2026-06-07 — Azure client ID/secret extraction fix complete)
 
 - **COMPLETE:** Azure provider Application Client ID / Secret extraction — lib-acg commit `861496d` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-azure-client-id-secret-not-extracted.md`; `playwright/providers/azure.js` now recognizes `Application Client ID` and `Secret` in the 6-ancestor label walk, tracks them as `clientId`/`clientSecret`, and emits `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` when the service-principal fields are present while preserving the username/password/subscription/tenant positional fallback; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the Azure extractor bug; validation used `node --check playwright/providers/azure.js`, `git diff --check`, and `make check lint test`; commit message: `fix(azure): extract Application Client ID and Secret as AZURE_CLIENT_ID and AZURE_CLIENT_SECRET`
 
