@@ -1,5 +1,9 @@
 # Progress — lib-acg
 
+## v0.1.4 Track — `feat/v0.1.4` (IN PROGRESS)
+
+- **OPEN:** Azure sandbox provider support — spec `docs/plans/v0.1.4-azure-sandbox-provider.md`; changes: `_findScopedButton` + `_deleteConflictingSandbox` added to `sandbox.js`, `startSandbox` rewritten with provider scoping, `acg_credentials.js` passes `provider` to `startSandbox`, `providers/azure.js` implements `extractCredentials`. Assigned to Codex.
+
 ## v0.1.3 Track — (MERGED PR #38)
 
 - **MERGED PR #38** (`ea76204a`): `playwright/lib/sandbox.js` — `{ force: true }` added to `startButton`, `startButton2`, and `resumeButton` clicks in `startSandbox()`; commit `07a9b29` (`fix(sandbox): add force:true to Start/Resume Sandbox clicks — survive layout shift after handler fires`). Bug spec: `docs/bugs/2026-06-07-sandbox-start-button-click-force-missing.md`. Retrospective: `docs/retro/2026-06-07-v0.1.3-retrospective.md`. Next branch: `feat/v0.1.4`.

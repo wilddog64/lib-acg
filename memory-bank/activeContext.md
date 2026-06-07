@@ -2,7 +2,11 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — post-merge housekeeping for v0.1.3)
+## Current Status (2026-06-07 — v0.1.4 Azure provider spec written, Codex handoff pending)
+
+- **IN PROGRESS:** Azure sandbox provider — spec at `docs/plans/v0.1.4-azure-sandbox-provider.md`. Adds `_findScopedButton` + `_deleteConflictingSandbox` to `sandbox.js`, rewrites `startSandbox(page, targetUrl, provider)` with card-scoped button lookups, passes `provider` through from `acg_credentials.js`, implements `providers/azure.js`. Conflict detection: "Auto Shutdown" text in non-target card; yellow band ("You may have only one active sandbox at a time") as safety net.
+
+## Previous Status (2026-06-07 — post-merge housekeeping for v0.1.3)
 - **COMPLETE:** PR #38 merged to main (`ea76204a`) — `fix(sandbox): restore force:true on Start/Resume Sandbox clicks`. Retrospective written: `docs/retro/2026-06-07-v0.1.3-retrospective.md`. Next branch `feat/v0.1.4` active. Enforce_admins API not applicable (no branch protection rules configured). memory-bank updated.
 
 ## Previous Status (2026-06-05 — v0.1.2 viewport fix complete)
