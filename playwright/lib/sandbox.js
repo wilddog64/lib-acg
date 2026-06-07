@@ -349,7 +349,18 @@ async function startSandbox(page, targetUrl, provider) {
       }
     }
 
-    const startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 5000);
+    let startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 30000);
+    if (!startButton2) {
+      console.error(`WARN: Scoped Start Sandbox not found for ${providerLabel} — trying any visible enabled Start Sandbox as fallback...`);
+      const allStart = page.locator('button:has-text("Start Sandbox")');
+      const count = await allStart.count().catch(() => 0);
+      for (let i = 0; i < count; i++) {
+        const btn = allStart.nth(i);
+        const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+        const enabled = await btn.isEnabled({ timeout: 300 }).catch(() => false);
+        if (visible && enabled) { startButton2 = btn; break; }
+      }
+    }
     if (startButton2) {
       const startEnabled2 = await startButton2.isEnabled({ timeout: 1000 }).catch(() => false);
       if (startEnabled2) {
@@ -359,6 +370,8 @@ async function startSandbox(page, targetUrl, provider) {
       } else {
         console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
       }
+    } else {
+      console.error(`WARN: No Start Sandbox button found for ${providerLabel} after Open Sandbox — proceeding to credential wait`);
     }
     await _waitForCredentials(page, providerLabel);
   } else if (resumeButton) {

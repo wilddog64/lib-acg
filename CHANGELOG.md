@@ -13,6 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `package.json` + `package-lock.json`: align version fields to `0.3.0` (were `0.2.0` and `0.1.0` respectively)
 
 ### Fixed
+- `playwright/lib/sandbox.js`: increase the post-Open-Sandbox `startButton2` search timeout to 30s and add a visible/enabled fallback search so Azure can still start when the scoped lookup misses the button on a slow panel transition
 - `playwright/lib/sandbox.js`: remove the intermediate `https://app.pluralsight.com/hands-on` hop from the sandbox retry block so a drifted page goes directly back to `targetUrl` instead of landing on Pluralsight's 404 page and losing the sandbox context
 - `playwright/lib/sandbox.js` and `playwright/providers/azure.js`: add provider exclusion checks to ancestor walks so shared containers no longer match the wrong provider card when multiple sandbox providers are visible
 - `playwright/lib/sandbox.js`: replace the raw DOM `dispatchEvent(new MouseEvent(...))` confirm-dialog path with a Playwright `confirmBtn.click({ force: true })` so React's synthetic event system sees the Delete Sandbox confirmation and actually closes the conflicting sandbox
