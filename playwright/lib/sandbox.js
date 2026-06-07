@@ -162,21 +162,28 @@ async function _dismissExtendYourSessionDialog(page) {
   }
 }
 
-async function _waitForCredentials(page) {
-  console.error('INFO: Waiting for credentials to populate (up to 420s)...');
+async function _waitForCredentials(page, providerLabel) {
+  console.error(`INFO: Waiting for ${providerLabel} credentials to populate (up to 420s)...`);
   const deadline = Date.now() + 420000;
   while (Date.now() < deadline) {
     await _dismissExtendYourSessionDialog(page);
-    const inputs = page.locator('input[aria-label="Copyable input"]');
-    if (await inputs.count() > 0) {
-      const value = await inputs.first().inputValue().catch(() => '');
-      if (value.trim().length > 0) {
-        return;
+    const found = await page.evaluate((pLabel) => {
+      const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
+      for (const input of inputs) {
+        if (!input.value.trim()) continue;
+        let node = input.parentElement;
+        for (let j = 0; j < 12; j++) {
+          if (!node) break;
+          if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
+          node = node.parentElement;
+        }
       }
-    }
+      return false;
+    }, providerLabel).catch(() => false);
+    if (found) return;
     await page.waitForTimeout(2000);
   }
-  throw new Error('Locator polling timed out after 420000ms waiting for input[aria-label="Copyable input"] to have a non-empty value.');
+  throw new Error(`Timed out after 420000ms waiting for ${providerLabel} credentials to populate.`);
 }
 
 async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
@@ -332,7 +339,7 @@ async function startSandbox(page, targetUrl, provider) {
     } else {
       console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
     }
-    await _waitForCredentials(page);
+    await _waitForCredentials(page, providerLabel);
   } else if (openButton) {
     console.error('INFO: Clicking Open Sandbox...');
     await openButton.click({ force: true });
@@ -363,12 +370,12 @@ async function startSandbox(page, targetUrl, provider) {
         console.error('INFO: Start Sandbox button is disabled — sandbox already running; waiting for credentials...');
       }
     }
-    await _waitForCredentials(page);
+    await _waitForCredentials(page, providerLabel);
   } else if (resumeButton) {
     console.error('INFO: Clicking Resume Sandbox...');
     await resumeButton.scrollIntoViewIfNeeded().catch(() => {});
     await resumeButton.click({ force: true });
-    await _waitForCredentials(page);
+    await _waitForCredentials(page, providerLabel);
   }
 }
 
