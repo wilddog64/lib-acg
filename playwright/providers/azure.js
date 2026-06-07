@@ -36,7 +36,9 @@ async function extractCredentials(page, outputFn) {
           if (!node) break;
           const t = node.innerText || '';
           if (!fieldLabel) {
-            if (/username|email/i.test(t)) fieldLabel = 'username';
+            if (/client/i.test(t)) fieldLabel = 'clientId';
+            else if (/\bsecret\b/i.test(t)) fieldLabel = 'clientSecret';
+            else if (/username|email/i.test(t)) fieldLabel = 'username';
             else if (/password/i.test(t)) fieldLabel = 'password';
             else if (/subscription/i.test(t)) fieldLabel = 'subscription';
             else if (/tenant/i.test(t)) fieldLabel = 'tenant';
@@ -53,8 +55,10 @@ async function extractCredentials(page, outputFn) {
     throw new Error('No credentials found in Azure provider card');
   }
 
-  let username, password, subscriptionId, tenantId;
+  let username, password, subscriptionId, tenantId, clientId, clientSecret;
   for (const { value: val, fieldLabel } of azureInputs) {
+    if (fieldLabel === 'clientId' && !clientId) clientId = val;
+    else if (fieldLabel === 'clientSecret' && !clientSecret) clientSecret = val;
     if (fieldLabel === 'username' && !username) username = val;
     else if (fieldLabel === 'password' && !password) password = val;
     else if (fieldLabel === 'subscription' && !subscriptionId) subscriptionId = val;
@@ -66,14 +70,17 @@ async function extractCredentials(page, outputFn) {
   if (!subscriptionId && azureInputs.length >= 3) subscriptionId = azureInputs[2].value;
   if (!tenantId && azureInputs.length >= 4) tenantId = azureInputs[3].value;
 
-  if (!username || !password) {
-    throw new Error('Could not find Azure Username and Password credentials');
+  const hasUserPass = username && password;
+  const hasServicePrincipal = clientId && clientSecret;
+  if (!hasUserPass && !hasServicePrincipal) {
+    throw new Error('Could not find Azure credentials (expected username+password or clientId+secret)');
   }
 
-  const creds = {
-    AZURE_USERNAME: username.trim(),
-    AZURE_PASSWORD: password.trim(),
-  };
+  const creds = {};
+  if (username) creds.AZURE_USERNAME = username.trim();
+  if (password) creds.AZURE_PASSWORD = password.trim();
+  if (clientId) creds.AZURE_CLIENT_ID = clientId.trim();
+  if (clientSecret) creds.AZURE_CLIENT_SECRET = clientSecret.trim();
   if (subscriptionId) creds.AZURE_SUBSCRIPTION_ID = subscriptionId.trim();
   if (tenantId) creds.AZURE_TENANT_ID = tenantId.trim();
   outputFn(creds);
