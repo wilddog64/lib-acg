@@ -1,6 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.4 Track — `feat/v0.1.4` (COMPLETE)
+## v0.1.4 Track — `feat/v0.1.4` (IN PROGRESS)
+
+- **COMPLETE:** `_waitForCredentials` Start Sandbox not clicked — lib-acg commit `e1ff241` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-wait-for-credentials-start-sandbox-not-clicked.md`; `playwright/lib/sandbox.js` `_waitForCredentials` now detects panel-open/unstarted state (credential inputs present + empty + Start Sandbox in same subtree) and clicks Start Sandbox; prevents toggle-cycle from re-open logic; commit message: `fix(sandbox): click Start Sandbox in _waitForCredentials when panel open but unstarted`
 
 - **COMPLETE:** `_waitForCredentials` panel re-open — lib-acg commit `2f4d0c0` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-wait-for-credentials-panel-auto-closes.md`; `playwright/lib/sandbox.js` now re-checks for the provider-scoped `Open Sandbox` button inside `_waitForCredentials(page, providerLabel)` and clicks it with `force: true` when the panel has auto-closed, logging the reopen before continuing the credential wait; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the panel auto-close regression; validation used `node --check playwright/lib/sandbox.js`, `git diff --check`, and `make check lint test`; commit message: `fix(sandbox): re-open provider panel in _waitForCredentials when it auto-closes`
 

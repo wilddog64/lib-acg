@@ -2,7 +2,11 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — panel auto-close reopen fix complete)
+## Current Status (2026-06-07 — _waitForCredentials Start Sandbox not clicked fix complete)
+
+- **COMPLETE:** `_waitForCredentials` Start Sandbox not clicked — lib-acg commit `e1ff241` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-wait-for-credentials-start-sandbox-not-clicked.md`; `playwright/lib/sandbox.js` `_waitForCredentials` now detects when the panel is open but the sandbox is not yet started (credential inputs present but empty + "Start Sandbox" button within 8 ancestors of first credential input) and clicks "Start Sandbox" before falling through to the re-open logic; this prevents the panel toggle-cycle that occurred when `startSandbox` scoped search missed the "Start Sandbox" button and `_waitForCredentials` kept re-opening the panel without starting the sandbox; live test showed Azure panel open with "Start Sandbox" visible and empty credential fields while script looped indefinitely; commit message: `fix(sandbox): click Start Sandbox in _waitForCredentials when panel open but unstarted`
+
+## Previous Status (2026-06-07 — panel auto-close reopen fix complete)
 
 - **COMPLETE:** `_waitForCredentials` panel re-open — lib-acg commit `2f4d0c0` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-wait-for-credentials-panel-auto-closes.md`; `playwright/lib/sandbox.js` `_waitForCredentials` now calls `_findScopedButton(page, 'Open Sandbox', providerLabel, 0)` on each tick and re-clicks with `force: true` when the provider panel has auto-closed; 7/7 tests pass; commit message: `fix(sandbox): re-open provider panel in _waitForCredentials when it auto-closes`; NOTE: Codex fabricated SHA `f4b7a1d` — fix was applied directly by Claude at `2f4d0c0`
 
