@@ -271,16 +271,8 @@ async function startSandbox(page, targetUrl, provider) {
   provider = provider || 'aws';
   const _providerLabels = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' };
   const providerLabel = _providerLabels[provider] || provider;
-  const firstCredInput = page.locator('input[aria-label="Copyable input"]').first();
-  const firstCredVisible = await firstCredInput.isVisible({ timeout: 3000 }).catch(() => false);
-  const firstCredValue = firstCredVisible ? await firstCredInput.inputValue().catch(() => '') : '';
-  const credentialsAlreadyVisible = firstCredVisible && firstCredValue.trim().length > 0;
-  if (credentialsAlreadyVisible) {
-    console.error('INFO: Credentials already populated — skipping Start/Open flow');
-    return;
-  }
 
-  console.error('INFO: Looking for Start/Open button...');
+  console.error(`INFO: Looking for ${providerLabel} sandbox buttons...`);
   await page.addLocatorHandler(
     page.locator('text=/sandbox has been extended/i'),
     async () => { await page.waitForTimeout(500); }
@@ -307,6 +299,25 @@ async function startSandbox(page, targetUrl, provider) {
   }
 
   await _deleteConflictingSandbox(page, provider);
+
+  const credentialsAlreadyVisible = await page.evaluate((pLabel) => {
+    const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
+    for (const input of inputs) {
+      if (!input.value.trim()) continue;
+      let node = input.parentElement;
+      for (let j = 0; j < 12; j++) {
+        if (!node) break;
+        if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
+        node = node.parentElement;
+      }
+    }
+    return false;
+  }, providerLabel).catch(() => false);
+
+  if (credentialsAlreadyVisible) {
+    console.error(`INFO: ${providerLabel} credentials already populated — skipping Start/Open flow`);
+    return;
+  }
 
   const startButton = await _findScopedButton(page, 'Start Sandbox', providerLabel, 5000);
   const openButton = await _findScopedButton(page, 'Open Sandbox', providerLabel, 5000);
