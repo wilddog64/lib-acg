@@ -257,13 +257,10 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   await deleteBtn.click({ force: true });
 
   await page.waitForTimeout(1500);
-  await page.evaluate(() => {
-    const dialog = document.querySelector('[role="alertdialog"]');
-    if (!dialog) return;
-    const btn = Array.from(dialog.querySelectorAll('button'))
-      .find(b => /delete sandbox/i.test(b.textContent || ''));
-    if (btn) btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-  }).catch(() => {});
+  const confirmBtn = page.locator('[role="alertdialog"] button', { hasText: /delete sandbox/i });
+  if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await confirmBtn.click({ force: true });
+  }
 
   console.error(`INFO: Waiting for ${conflictingLabel} sandbox deletion (up to 180s)...`);
   const deleted = await _findScopedButton(page, 'Start Sandbox', conflictingLabel, 180000);
