@@ -1,11 +1,11 @@
 # Progress — lib-acg
 
-## v0.1.3 Track — `feat/v0.1.3` (IN PROGRESS — PR creation)
+## v0.1.3 Track — `feat/v0.1.3` (IN PROGRESS — PR #38 open, Copilot review)
 
 - **Bug spec:** `docs/bugs/2026-06-07-sandbox-start-button-click-force-missing.md` — `playwright/lib/sandbox.js` missing `{ force: true }` on Start/Resume Sandbox clicks; regression from v0.1.2 where scroll was added but force flag was omitted. Layout shift post-scroll (from `addLocatorHandler` for "sandbox has been extended") still fails the click.
 - **Fix committed:** `07a9b29` (`fix(sandbox): add force:true to Start/Resume Sandbox clicks — survive layout shift after handler fires`) — adds `{ force: true }` to `startButton`, `startButton2`, `resumeButton`.
-- **CHANGELOG updated:** `a0ccd95` (`chore(changelog): add Unreleased entry for force:true sandbox clicks`) — added entry to [Unreleased] section describing the fix.
-- **PR creation in progress** — PR #38 target.
+- **CHANGELOG updated:** `a0ccd95` — added entry to [Unreleased] section describing the fix.
+- **PR #38 open** — CI green; Copilot review in progress.
 
 ## v0.1.2 Track — (MERGED PR #37)
 
