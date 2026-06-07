@@ -29,12 +29,16 @@ target label — including the shared parent that contains all provider cards. T
 provider card is the FIRST ancestor whose text has the target label WITHOUT the other providers'
 labels. That exclusion is missing.
 
-The same defect exists in five places:
+The defect exists in four places (NOT `_waitForCredentials` — see Change 2 below):
 1. `_findScopedButton` — 8-level walk (sandbox.js)
-2. `_waitForCredentials` evaluate — 12-level walk (sandbox.js)
-3. `credentialsAlreadyVisible` evaluate in `startSandbox` — 12-level walk (sandbox.js)
-4. `azure.js` `waitForFunction` — 12-level walk
-5. `azure.js` `page.evaluate` filter — 12-level walk
+2. `credentialsAlreadyVisible` evaluate in `startSandbox` — 12-level walk (sandbox.js)
+3. `azure.js` `waitForFunction` — 12-level walk
+4. `azure.js` `page.evaluate` filter — 12-level walk
+
+`_waitForCredentials` is intentionally NOT given the exclusion check. Its credential-area
+text often contains only field labels ("Username", "Password", "Access Key Id") with no
+provider keyword — making the DOM walk unreliable. `_waitForCredentials` just needs to know
+when ANY credentials have populated; the provider-specific extractor does the filtering.
 
 ---
 
@@ -82,11 +86,18 @@ it does NOT contain any OTHER provider keyword. The individual Azure card has "A
 
 ---
 
-### Change 2 — `playwright/lib/sandbox.js`: `_waitForCredentials` evaluate
+### Change 2 — `playwright/lib/sandbox.js`: revert `_waitForCredentials` to simple global check
 
-**Exact old block (lines 170–182):**
+The DOM-walk version (added in e383f1f) hangs for AWS because the credential area's
+`innerText` contains only field labels ("Username", "Password", "Access Key Id") — no
+"AWS" literal — so the walk never matches. `_waitForCredentials` doesn't need scoping;
+it just signals "credentials populated." The extractor filters by provider.
+
+**Exact old block (lines 168–183):**
 
 ```javascript
+  while (Date.now() < deadline) {
+    await _dismissExtendYourSessionDialog(page);
     const found = await page.evaluate((pLabel) => {
       const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
       for (const input of inputs) {
@@ -100,28 +111,25 @@ it does NOT contain any OTHER provider keyword. The individual Azure card has "A
       }
       return false;
     }, providerLabel).catch(() => false);
+    if (found) return;
+    await page.waitForTimeout(2000);
+  }
+  throw new Error(`Timed out after 420000ms waiting for ${providerLabel} credentials to populate.`);
 ```
 
 **Exact new block:**
 
 ```javascript
-    const found = await page.evaluate((pLabel) => {
-      const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
-        p => !new RegExp(p, 'i').test(pLabel)
-      );
-      const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
-      for (const input of inputs) {
-        if (!input.value.trim()) continue;
-        let node = input.parentElement;
-        for (let j = 0; j < 12; j++) {
-          if (!node) break;
-          const t = node.innerText || '';
-          if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
-          node = node.parentElement;
-        }
-      }
-      return false;
-    }, providerLabel).catch(() => false);
+  while (Date.now() < deadline) {
+    await _dismissExtendYourSessionDialog(page);
+    const inputs = page.locator('input[aria-label="Copyable input"]');
+    if (await inputs.count() > 0) {
+      const value = await inputs.first().inputValue().catch(() => '');
+      if (value.trim().length > 0) return;
+    }
+    await page.waitForTimeout(2000);
+  }
+  throw new Error(`Timed out after 420000ms waiting for ${providerLabel} credentials to populate.`);
 ```
 
 ---
@@ -256,7 +264,7 @@ it does NOT contain any OTHER provider keyword. The individual Azure card has "A
 
 | File | Change |
 |------|--------|
-| `playwright/lib/sandbox.js` | Add exclusion check to `_findScopedButton`, `_waitForCredentials`, and `credentialsAlreadyVisible` ancestor walks |
+| `playwright/lib/sandbox.js` | Exclusion check in `_findScopedButton` and `credentialsAlreadyVisible`; revert `_waitForCredentials` to simple global check |
 | `playwright/providers/azure.js` | Add exclusion check to `waitForFunction` and `page.evaluate` filter ancestor walks |
 | `CHANGELOG.md` | Add `[Unreleased]` entry under `### Fixed` |
 | `memory-bank/activeContext.md` | Update current status |
@@ -275,8 +283,8 @@ it does NOT contain any OTHER provider keyword. The individual Azure card has "A
 ## Definition of Done
 
 - [ ] `_findScopedButton` evaluates to `true` only when ancestor contains `providerLabel` AND does NOT contain any other provider keyword
-- [ ] `_waitForCredentials` evaluate has the same exclusion check
-- [ ] `credentialsAlreadyVisible` evaluate in `startSandbox` has the same exclusion check
+- [ ] `_waitForCredentials` reverted to simple `inputs.first().inputValue()` global check — NO exclusion, NO DOM walk
+- [ ] `credentialsAlreadyVisible` evaluate in `startSandbox` has the exclusion check
 - [ ] `azure.js` `waitForFunction` has the exclusion check (`others = ['AWS', 'Google Cloud', 'GCP']`)
 - [ ] `azure.js` `page.evaluate` filter has the exclusion check
 - [ ] `node --check` passes on both files
