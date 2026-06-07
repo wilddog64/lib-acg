@@ -1,43 +1,106 @@
-# Bugfix: v0.1.4 — acg_restart.js has unscoped button lookups and missing exclusion check
+# Bugfix: v0.1.4 — sandbox cycling: startButton2 fallback unscoped + acg_restart.js button lookups unscoped
 
 **Branch:** `feat/v0.1.4`
-**Files:** `playwright/acg_restart.js`, `CHANGELOG.md`, `memory-bank/activeContext.md`, `memory-bank/progress.md`
+**Files:** `playwright/lib/sandbox.js`, `playwright/acg_restart.js`, `CHANGELOG.md`, `memory-bank/activeContext.md`, `memory-bank/progress.md`
 
 ---
 
 ## Problem
 
+Two unscoped button lookups combine to cause a sandbox cycling loop observed in live tests:
+
+### Bug A — `sandbox.js` startButton2 fallback is unscoped
+
+After deleting the conflicting sandbox (e.g. AWS) and clicking the target provider's "Open
+Sandbox", `startSandbox` searches for the provider-scoped "Start Sandbox" with a 30s timeout.
+If that returns null, the fallback loop at lines 353–363 iterates all visible+enabled "Start
+Sandbox" buttons with **no provider filter**.
+
+At that moment the page shows TWO "Start Sandbox" buttons simultaneously:
+1. The deleted sandbox's card (e.g. AWS — deleted, showing "Start Sandbox" to re-provision)
+2. The target provider's panel (e.g. Azure — just opened, waiting to be started)
+
+The fallback picks DOM-first, which is typically the wrong provider (AWS card is above Azure).
+The wrong sandbox starts; `_waitForCredentials` sees its credentials; the target provider's
+extractor times out. `acg_restart.js` then runs on the failed state.
+
+### Bug B — `acg_restart.js` has unscoped button lookups and missing exclusion check
+
 `acg_restart.js` has its own copy of `_findScopedButton` (lines 96–119). The exclusion check
-added to `sandbox.js`'s copy in `654f319` was never applied to `acg_restart.js`. Without
-the exclusion check, a shared ancestor whose `innerText` includes ALL provider labels can
-match the wrong provider's button.
+added to `sandbox.js`'s copy in `654f319` was never applied here. Without it, a shared
+ancestor whose `innerText` includes all provider labels can match the wrong provider's button.
 
-Additionally, three button lookups inside `restartSandbox` are unscoped locators:
+Three additional button lookups are unscoped plain locators:
+- `deleteBtn` (line 283): `.first()` — may delete the wrong provider's sandbox
+- `openBtn` (line 286): `.first()` — may open the wrong provider's panel
+- `_startBtnPanel` (line 302): `.first()` — in the `_sandboxNotYetStarted` path, may start the wrong provider
 
-1. **`deleteBtn`** (line 283): `page.locator('button:has-text("Delete Sandbox")').first()` —
-   if both AWS and Azure sandboxes have a "Delete Sandbox" button visible, this picks the
-   first in DOM order, which may be the wrong provider.
-
-2. **`openBtn`** (line 286): `page.locator('button:has-text("Open Sandbox")').first()` —
-   opens the first provider's panel regardless of which provider is the target.
-
-3. **`_startBtnPanel`** (line 302): `page.locator('button:has-text("Start Sandbox")').first()` —
-   in the `_sandboxNotYetStarted` path, clicks the first visible Start Sandbox button, which
-   may belong to a different provider.
-
-Combined with the `sandbox.js` fallback bug, these cause the sandbox cycling observed in
-live tests: `acg_restart.js` opens/deletes/starts the wrong provider's sandbox, which then
-appears running on the next `acg_credentials.js` run, triggering another deletion cycle.
-
-**Root causes:**
-- `_findScopedButton` in `acg_restart.js` lacks the `others` exclusion check (present in `sandbox.js` since `654f319`)
-- `openBtn`, `deleteBtn`, `_startBtnPanel` are plain unscoped locators, not provider-scoped
+**Symptom from live test log:**
+```
+WARN: Scoped Start Sandbox not found for Azure — trying any visible enabled Start Sandbox as fallback...
+INFO: Clicking Start Sandbox (Step 2)...
+INFO: Waiting for Azure credentials to populate (up to 420s)...
+ERROR: page.waitForFunction: Timeout 30000ms exceeded
+...
+INFO: Running AWS sandbox detected — deleting before starting Azure...
+```
+AWS keeps re-appearing after deletion because the fallback restarted it in the previous cycle.
 
 ---
 
 ## Fix
 
-### Change 1 — `playwright/acg_restart.js`: add exclusion check to `_findScopedButton`
+### Change 1 — `playwright/lib/sandbox.js`: add provider exclusion check to startButton2 fallback
+
+**Exact old block (lines 352–363):**
+
+```javascript
+    let startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 30000);
+    if (!startButton2) {
+      console.error(`WARN: Scoped Start Sandbox not found for ${providerLabel} — trying any visible enabled Start Sandbox as fallback...`);
+      const allStart = page.locator('button:has-text("Start Sandbox")');
+      const count = await allStart.count().catch(() => 0);
+      for (let i = 0; i < count; i++) {
+        const btn = allStart.nth(i);
+        const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+        const enabled = await btn.isEnabled({ timeout: 300 }).catch(() => false);
+        if (visible && enabled) { startButton2 = btn; break; }
+      }
+    }
+```
+
+**Exact new block:**
+
+```javascript
+    let startButton2 = await _findScopedButton(page, 'Start Sandbox', providerLabel, 30000);
+    if (!startButton2) {
+      console.error(`WARN: Scoped Start Sandbox not found for ${providerLabel} — trying provider-scoped fallback...`);
+      const allStart = page.locator('button:has-text("Start Sandbox")');
+      const count = await allStart.count().catch(() => 0);
+      const _fbOthers = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(p => !new RegExp(p, 'i').test(providerLabel));
+      for (let i = 0; i < count; i++) {
+        const btn = allStart.nth(i);
+        const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+        const enabled = await btn.isEnabled({ timeout: 300 }).catch(() => false);
+        if (!visible || !enabled) continue;
+        const inTargetCard = await btn.evaluate((el, [pLabel, others]) => {
+          let node = el.parentElement;
+          for (let j = 0; j < 8; j++) {
+            if (!node) break;
+            const t = node.innerText || '';
+            if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
+            node = node.parentElement;
+          }
+          return false;
+        }, [providerLabel, _fbOthers]).catch(() => false);
+        if (inTargetCard) { startButton2 = btn; break; }
+      }
+    }
+```
+
+---
+
+### Change 2 — `playwright/acg_restart.js`: add exclusion check to `_findScopedButton`
 
 **Exact old block (lines 96–119):**
 
@@ -103,7 +166,7 @@ async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
 
 ---
 
-### Change 2 — `playwright/acg_restart.js`: scope `deleteBtn` initial check and `openBtn`
+### Change 3 — `playwright/acg_restart.js`: scope `deleteBtn` initial check and `openBtn`
 
 **Exact old block (lines 282–296):**
 
@@ -147,7 +210,7 @@ async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
 
 ---
 
-### Change 3 — `playwright/acg_restart.js`: scope `_startBtnPanel` and `deleteBtn` poll
+### Change 4 — `playwright/acg_restart.js`: scope `_startBtnPanel` and `deleteBtn` poll
 
 **Exact old block (lines 297–324):**
 
@@ -219,8 +282,8 @@ async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
 
 **Note on `timeoutMs = 0`:** `_findScopedButton` with `timeoutMs = 0` sets `deadline =
 Date.now()`. The while condition `Date.now() <= deadline` is true on the first iteration
-(both evaluated in the same tick), does a single DOM pass, then exits. This gives an
-immediate non-blocking check — appropriate inside the 500ms-sleep poll loop.
+(both evaluated in the same synchronous tick), does a single DOM pass, then exits without
+sleeping. Appropriate inside an outer 500ms-sleep poll loop.
 
 ---
 
@@ -228,6 +291,7 @@ immediate non-blocking check — appropriate inside the 500ms-sleep poll loop.
 
 | File | Change |
 |------|--------|
+| `playwright/lib/sandbox.js` | Add provider exclusion check to `startButton2` fallback loop |
 | `playwright/acg_restart.js` | Add exclusion check to `_findScopedButton`; scope `deleteBtn`, `openBtn`, `_startBtnPanel` to target provider |
 | `CHANGELOG.md` | Add `[Unreleased]` entry under `### Fixed` |
 | `memory-bank/activeContext.md` | Update current status |
@@ -237,6 +301,7 @@ immediate non-blocking check — appropriate inside the 500ms-sleep poll loop.
 
 ## Rules
 
+- `node --check playwright/lib/sandbox.js` — zero errors
 - `node --check playwright/acg_restart.js` — zero errors
 - No other files touched
 
@@ -244,12 +309,14 @@ immediate non-blocking check — appropriate inside the 500ms-sleep poll loop.
 
 ## Definition of Done
 
-- [ ] `_findScopedButton` in `acg_restart.js` has `others` exclusion check — identical logic to `sandbox.js`'s version (`654f319`)
-- [ ] `const deleteBtn = page.locator(...)` → `let deleteBtn = await _findScopedButton(page, 'Delete Sandbox', _providerCardLabel, 3000)`
-- [ ] `const openBtn = page.locator(...)` → `const openBtn = await _findScopedButton(page, 'Open Sandbox', _providerCardLabel, 5000)`
-- [ ] `const _startBtnPanel = page.locator(...)` removed; replaced with `let _startBtnPanelScoped = null`
-- [ ] Poll loop uses `_findScopedButton(..., 0)` for both Delete and Start Sandbox checks
-- [ ] `_sandboxNotYetStarted` path uses `_startBtnPanelScoped` (not `_startBtnPanel`)
+- [ ] `sandbox.js` fallback log message changed to `"trying provider-scoped fallback..."`
+- [ ] `sandbox.js` fallback loop: `_fbOthers` computed; ancestor walk checks `(providerLabel matches) && !(any other provider matches)`; `if (inTargetCard) { startButton2 = btn; break; }`
+- [ ] `acg_restart.js` `_findScopedButton` has `others` exclusion check — identical logic to `sandbox.js`'s version
+- [ ] `acg_restart.js`: `const deleteBtn = page.locator(...)` → `let deleteBtn = await _findScopedButton(page, 'Delete Sandbox', _providerCardLabel, 3000)`
+- [ ] `acg_restart.js`: `const openBtn = page.locator(...)` → `const openBtn = await _findScopedButton(page, 'Open Sandbox', _providerCardLabel, 5000)`
+- [ ] `acg_restart.js`: `const _startBtnPanel = page.locator(...)` removed; replaced with `let _startBtnPanelScoped = null`
+- [ ] `acg_restart.js`: poll loop uses `_findScopedButton(..., 0)` for both Delete and Start checks; `_sandboxNotYetStarted` path uses `_startBtnPanelScoped`
+- [ ] `node --check playwright/lib/sandbox.js` passes
 - [ ] `node --check playwright/acg_restart.js` passes
 - [ ] `make check lint test` passes (run in lib-acg repo root)
 - [ ] `CHANGELOG.md` updated under `### Fixed`
@@ -258,7 +325,7 @@ immediate non-blocking check — appropriate inside the 500ms-sleep poll loop.
 
 **Commit message (exact):**
 ```
-fix(acg_restart): add provider exclusion check to _findScopedButton; scope deleteBtn/openBtn/startBtnPanel
+fix(sandbox,acg_restart): scope startButton2 fallback and acg_restart button lookups to target provider
 ```
 
 ---
@@ -266,8 +333,8 @@ fix(acg_restart): add provider exclusion check to _findScopedButton; scope delet
 ## What NOT to Do
 
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/acg_restart.js` (plus `CHANGELOG.md` and `memory-bank/`)
+- Do NOT modify any file other than `playwright/lib/sandbox.js` and `playwright/acg_restart.js` (plus `CHANGELOG.md` and `memory-bank/`)
 - Do NOT commit to `main` — work on `feat/v0.1.4`
-- Do NOT change any other function in `acg_restart.js` beyond the three listed changes
-- Do NOT change the fast-path `_deleteBtnCheck`/`_openBtnCheck` unscoped checks at lines 264–265 — those are intentionally unscoped (checking if ANY Delete/Open is present on the page, not just the target)
-- Do NOT touch `sandbox.js`, `acg_credentials.js`, or any provider file
+- Do NOT change `_findScopedButton` in `sandbox.js` — only the fallback loop changes in that file
+- Do NOT change the fast-path `_deleteBtnCheck`/`_openBtnCheck` unscoped checks at lines 264–265 of `acg_restart.js` — those are intentionally unscoped (checking if ANY Delete/Open is present on the page)
+- Do NOT touch `acg_credentials.js` or any provider file

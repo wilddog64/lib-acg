@@ -4,8 +4,7 @@
 
 ## Current Status (2026-06-07 — sandbox cycling bug specs filed, Codex pending)
 
-- **OPEN:** Sandbox cycling bug — `sandbox.js` `startButton2` fallback is unscoped; after deleting conflicting AWS and clicking Azure Open Sandbox, both AWS (deleted, showing Start Sandbox) and Azure (panel, showing Start Sandbox) are visible; fallback picks AWS first → wrong sandbox starts → cycling; spec: `docs/bugs/2026-06-07-sandbox-startbutton2-fallback-unscoped.md`; commit message: `fix(sandbox): add provider exclusion check to startButton2 fallback — prevents clicking wrong sandbox`
-- **OPEN:** `acg_restart.js` unscoped buttons — `_findScopedButton` lacks exclusion check; `deleteBtn`, `openBtn`, `_startBtnPanel` are plain locators; may open/delete/start wrong provider's sandbox; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; commit message: `fix(acg_restart): add provider exclusion check to _findScopedButton; scope deleteBtn/openBtn/startBtnPanel`
+- **OPEN:** Sandbox cycling bug — `sandbox.js` startButton2 fallback unscoped + `acg_restart.js` unscoped button lookups + missing exclusion check in `acg_restart.js` `_findScopedButton`; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; commit message: `fix(sandbox,acg_restart): scope startButton2 fallback and acg_restart button lookups to target provider`
 
 ## Previous Status (2026-06-07 — Azure client ID/secret extraction fix complete)
 

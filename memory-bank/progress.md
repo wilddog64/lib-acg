@@ -2,8 +2,7 @@
 
 ## v0.1.4 Track — `feat/v0.1.4` (IN PROGRESS)
 
-- **OPEN:** `sandbox.js` startButton2 fallback unscoped — spec: `docs/bugs/2026-06-07-sandbox-startbutton2-fallback-unscoped.md`
-- **OPEN:** `acg_restart.js` unscoped buttons + missing exclusion check — spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`
+- **OPEN:** sandbox cycling — `sandbox.js` startButton2 fallback unscoped + `acg_restart.js` unscoped buttons + missing exclusion check — spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`
 
 - **COMPLETE:** Azure provider Application Client ID / Secret extraction — lib-acg commit `861496d` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-azure-client-id-secret-not-extracted.md`; `playwright/providers/azure.js` now recognizes `Application Client ID` and `Secret` in the 6-ancestor label walk, tracks them as `clientId`/`clientSecret`, and emits `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` when the service-principal fields are present while preserving the username/password/subscription/tenant positional fallback; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the Azure extractor bug; validation used `node --check playwright/providers/azure.js`, `git diff --check`, and `make check lint test`; commit message: `fix(azure): extract Application Client ID and Secret as AZURE_CLIENT_ID and AZURE_CLIENT_SECRET`
 
