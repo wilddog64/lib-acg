@@ -2,7 +2,11 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — extend dialog force/early creds check fix complete)
+## Current Status (2026-06-07 — Azure client ID/secret extraction fix pending)
+
+- **OPEN:** Azure provider doesn't extract Application Client ID and Secret — spec: `docs/bugs/2026-06-07-azure-client-id-secret-not-extracted.md`; `playwright/providers/azure.js` label detection has no branches for `/client/i` or `/\bsecret\b/i`, so those fields fall through to the positional fallback and land in `AZURE_USERNAME`/`AZURE_PASSWORD` instead of `AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`; fix adds two new regex branches, declares `clientId`/`clientSecret` vars, and updates the error check + output block to emit both service-principal and user/pass creds conditionally; handed to Codex
+
+## Previous Status (2026-06-07 — extend dialog force/early creds check fix complete)
 
 - **COMPLETE:** Extend dialog force click + early credentials check — lib-acg commit `fa10572` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-extend-dialog-force-and-early-creds-check.md`; `playwright/lib/sandbox.js` now clicks the Extend button with `force: true` in `_dismissExtendYourSessionDialog`, moves the `credentialsAlreadyVisible` early return ahead of `_deleteConflictingSandbox(page, provider)` so already-running sandboxes skip the delete attempt, and keeps the rest of `startSandbox()` unchanged; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the dialog-force and early-credentials-order regression; validation used `node --check playwright/lib/sandbox.js`, `git diff --check`, and `make check lint test`; commit message: `fix(sandbox): add force:true to extend dialog click; check credentialsAlreadyVisible before deletion`
 - **COMPLETE:** Open Sandbox startButton2 timeout/fallback — lib-acg commit `5878dcf` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-open-sandbox-start-button-timeout-too-short.md`; `playwright/lib/sandbox.js` now waits 30s for the scoped `Start Sandbox` button after `Open Sandbox`, falls back to the first visible enabled `Start Sandbox` button when the scoped search returns null, and logs WARN messages for the fallback/no-button cases so the Azure path no longer falls through to credential wait prematurely; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the timeout regression; validation used `node --check playwright/lib/sandbox.js`, `git diff --check`, and `make check lint test`; commit message: `fix(sandbox): increase startButton2 timeout to 30s and add fallback after Open Sandbox click`
