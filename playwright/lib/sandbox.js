@@ -147,7 +147,7 @@ async function _dismissExtendYourSessionDialog(page) {
   ).first();
   const extendVisible = await extendBtn.isVisible({ timeout: 2000 }).catch(() => false);
   if (extendVisible) {
-    await extendBtn.click().catch(() => {});
+    await extendBtn.click({ force: true }).catch(() => {});
   } else {
     await page.keyboard.press('Enter').catch(() => {});
   }
@@ -291,8 +291,6 @@ async function startSandbox(page, targetUrl, provider) {
     console.error('WARN: Timed out waiting for sandbox buttons or credentials — proceeding anyway');
   }
 
-  await _deleteConflictingSandbox(page, provider);
-
   const credentialsAlreadyVisible = await page.evaluate((pLabel) => {
     const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
       p => !new RegExp(p, 'i').test(pLabel)
@@ -315,6 +313,8 @@ async function startSandbox(page, targetUrl, provider) {
     console.error(`INFO: ${providerLabel} credentials already populated — skipping Start/Open flow`);
     return;
   }
+
+  await _deleteConflictingSandbox(page, provider);
 
   const startButton = await _findScopedButton(page, 'Start Sandbox', providerLabel, 5000);
   const openButton = await _findScopedButton(page, 'Open Sandbox', providerLabel, 5000);
