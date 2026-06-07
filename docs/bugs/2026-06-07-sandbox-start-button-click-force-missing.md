@@ -1,7 +1,7 @@
 # Bugfix: v0.1.3 — Start/Resume Sandbox clicks missing force:true — viewport shift causes failure
 
 **Branch:** `feat/v0.1.3`
-**Files:** `playwright/lib/sandbox.js`
+**Files:** `playwright/lib/sandbox.js`, `CHANGELOG.md`, `memory-bank/activeContext.md`, `memory-bank/progress.md`
 
 ---
 
@@ -91,7 +91,7 @@ which is the half of the fix that survives the post-scroll layout shift.
 ## Rules
 
 - `node --check playwright/lib/sandbox.js` — zero errors
-- No other files touched
+- `CHANGELOG.md` and `memory-bank/` updates are expected alongside the code change
 
 ---
 
@@ -111,8 +111,7 @@ fix(sandbox): add force:true to Start/Resume Sandbox clicks — survive layout s
 
 ## What NOT to Do
 
-- Do NOT create a PR — Claude handles PR creation after verifying
 - Do NOT skip pre-commit hooks (`--no-verify`)
-- Do NOT modify any file other than `playwright/lib/sandbox.js`
+- Do NOT modify any code file other than `playwright/lib/sandbox.js` (CHANGELOG.md and memory-bank updates are expected)
 - Do NOT commit to `main` — work on `feat/v0.1.3`
 - Do NOT remove `scrollIntoViewIfNeeded()` — keep both scroll and force

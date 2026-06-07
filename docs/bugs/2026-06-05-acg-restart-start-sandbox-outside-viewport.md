@@ -115,7 +115,6 @@ fix(acg_restart): scrollIntoViewIfNeeded before Start Sandbox clicks in restart 
 
 ## What NOT to Do
 
-- Do NOT create a PR yourself — Claude handles PR creation after verifying the commit
 - Do NOT skip pre-commit hooks (`--no-verify`)
 - Do NOT modify any code file other than `playwright/acg_restart.js` (CHANGELOG.md and memory-bank updates are expected)
 - Do NOT commit to `main` — work on `feat/v0.1.3`
