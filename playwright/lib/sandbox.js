@@ -171,6 +171,24 @@ async function _waitForCredentials(page, providerLabel) {
     if (await inputs.count() > 0) {
       const value = await inputs.first().inputValue().catch(() => '');
       if (value.trim().length > 0) return;
+      const panelHasStartBtn = await page.evaluate(() => {
+        const inp = document.querySelector('input[aria-label="Copyable input"]');
+        if (!inp) return false;
+        let node = inp.parentElement;
+        for (let j = 0; j < 8; j++) {
+          if (!node) break;
+          const btns = Array.from(node.querySelectorAll('button'));
+          if (btns.some(b => (b.innerText || '').includes('Start Sandbox') && !b.disabled)) return true;
+          node = node.parentElement;
+        }
+        return false;
+      }).catch(() => false);
+      if (panelHasStartBtn) {
+        console.error(`INFO: ${providerLabel} panel open but sandbox not started — clicking Start Sandbox...`);
+        await page.locator('button:has-text("Start Sandbox")').first().click({ force: true }).catch(() => {});
+        await page.waitForTimeout(5000);
+        continue;
+      }
     }
     const reopenBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 0);
     if (reopenBtn) {
