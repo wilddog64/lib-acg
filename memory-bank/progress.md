@@ -1,8 +1,8 @@
 # Progress — lib-acg
 
-## v0.1.4 Track — `feat/v0.1.4` (IN PROGRESS)
+## v0.1.4 Track — `feat/v0.1.4` (COMPLETE)
 
-- **OPEN:** Azure sandbox provider support — spec `docs/plans/v0.1.4-azure-sandbox-provider.md`; changes: `_findScopedButton` + `_deleteConflictingSandbox` added to `sandbox.js`, `startSandbox` rewritten with provider scoping, `acg_credentials.js` passes `provider` to `startSandbox`, `providers/azure.js` implements `extractCredentials`. Assigned to Codex.
+- **COMPLETE:** Azure sandbox provider support — lib-acg commit `87b2447` on `feat/v0.1.4`; spec: `docs/plans/v0.1.4-azure-sandbox-provider.md`; `playwright/lib/sandbox.js` now adds `_findScopedButton` and `_deleteConflictingSandbox`, rewrites `startSandbox(page, targetUrl, provider)` to scope button lookups by provider card and delete conflicting active sandboxes before starting Azure, `playwright/acg_credentials.js` now passes `provider` through to `startSandbox`, `playwright/providers/azure.js` now extracts Azure username/password/subscription/tenant credentials from copyable inputs, and `CHANGELOG.md` adds an `[Unreleased]` entry describing the Azure provider support; validation used `node --check playwright/lib/sandbox.js`, `node --check playwright/acg_credentials.js`, and `node --check playwright/providers/azure.js`; commit message: `feat(sandbox): Azure provider support — scoped button lookups, conflict deletion, Azure credential extraction`
 
 ## v0.1.3 Track — (MERGED PR #38)
 

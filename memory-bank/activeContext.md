@@ -2,9 +2,9 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — v0.1.4 Azure provider spec written, Codex handoff pending)
+## Current Status (2026-06-07 — v0.1.4 Azure provider support complete)
 
-- **IN PROGRESS:** Azure sandbox provider — spec at `docs/plans/v0.1.4-azure-sandbox-provider.md`. Adds `_findScopedButton` + `_deleteConflictingSandbox` to `sandbox.js`, rewrites `startSandbox(page, targetUrl, provider)` with card-scoped button lookups, passes `provider` through from `acg_credentials.js`, implements `providers/azure.js`. Conflict detection: "Auto Shutdown" text in non-target card; yellow band ("You may have only one active sandbox at a time") as safety net.
+- **COMPLETE:** Azure sandbox provider support — lib-acg commit `87b2447` on `feat/v0.1.4`; spec: `docs/plans/v0.1.4-azure-sandbox-provider.md`; `playwright/lib/sandbox.js` now adds `_findScopedButton` and `_deleteConflictingSandbox`, rewrites `startSandbox(page, targetUrl, provider)` to scope button lookups by provider card and delete conflicting active sandboxes before starting Azure, `playwright/acg_credentials.js` now passes `provider` through to `startSandbox`, `playwright/providers/azure.js` now extracts Azure username/password/subscription/tenant credentials from copyable inputs, and `CHANGELOG.md` adds an `[Unreleased]` entry describing the Azure provider support; validation used `node --check playwright/lib/sandbox.js`, `node --check playwright/acg_credentials.js`, and `node --check playwright/providers/azure.js`; commit message: `feat(sandbox): Azure provider support — scoped button lookups, conflict deletion, Azure credential extraction`
 
 ## Previous Status (2026-06-07 — post-merge housekeeping for v0.1.3)
 - **COMPLETE:** PR #38 merged to main (`ea76204a`) — `fix(sandbox): restore force:true on Start/Resume Sandbox clicks`. Retrospective written: `docs/retro/2026-06-07-v0.1.3-retrospective.md`. Next branch `feat/v0.1.4` active. Enforce_admins API not applicable (no branch protection rules configured). memory-bank updated.
