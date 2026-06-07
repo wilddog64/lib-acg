@@ -2,9 +2,9 @@
 
 ## Current Branch: `feat/v0.1.4`
 
-## Current Status (2026-06-07 — sandbox cycling bug specs filed, Codex pending)
+## Current Status (2026-06-07 — sandbox cycling provider-scoping fix complete)
 
-- **OPEN:** Sandbox cycling bug — `sandbox.js` startButton2 fallback unscoped + `acg_restart.js` unscoped button lookups + missing exclusion check in `acg_restart.js` `_findScopedButton`; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; commit message: `fix(sandbox,acg_restart): scope startButton2 fallback and acg_restart button lookups to target provider`
+- **COMPLETE:** Sandbox cycling provider-scoping fix — lib-acg commit `c83a997` on `feat/v0.1.4`; spec: `docs/bugs/2026-06-07-acg-restart-buttons-unscoped.md`; `playwright/lib/sandbox.js` now uses a provider-scoped fallback when the scoped `Start Sandbox` search times out, so the fallback loop only accepts a visible+enabled `Start Sandbox` inside the target provider card; `playwright/acg_restart.js` now uses the same exclusion-aware `_findScopedButton` logic and scopes the Delete/Open/Start lookups to the target provider card, including the `_startBtnPanelScoped` direct-start path; `CHANGELOG.md` adds an `[Unreleased]` fixed entry for the sandbox-cycling regression; validation used `node --check playwright/lib/sandbox.js`, `node --check playwright/acg_restart.js`, `git diff --check`, and `make check lint test`; commit message: `fix(sandbox,acg_restart): scope startButton2 fallback and acg_restart button lookups to target provider`
 
 ## Previous Status (2026-06-07 — Azure client ID/secret extraction fix complete)
 
