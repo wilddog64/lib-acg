@@ -171,21 +171,31 @@ async function _waitForCredentials(page, providerLabel) {
     if (await inputs.count() > 0) {
       const value = await inputs.first().inputValue().catch(() => '');
       if (value.trim().length > 0) return;
-      const panelHasStartBtn = await page.evaluate(() => {
-        const inp = document.querySelector('input[aria-label="Copyable input"]');
-        if (!inp) return false;
-        let node = inp.parentElement;
-        for (let j = 0; j < 8; j++) {
-          if (!node) break;
-          const btns = Array.from(node.querySelectorAll('button'));
-          if (btns.some(b => (b.innerText || '').includes('Start Sandbox') && !b.disabled)) return true;
-          node = node.parentElement;
-        }
-        return false;
-      }).catch(() => false);
-      if (panelHasStartBtn) {
+      // Panel open but credentials not yet populated — check for provider-scoped Start Sandbox.
+      // Walk up from each Start Sandbox button (depth 6, no exclusion): depth 6 reaches the
+      // panel container with providerLabel text but stays within the panel, before the shared
+      // card-grid ancestor where both provider names appear (reached at depth 7-8).
+      const allStart = page.locator('button:has-text("Start Sandbox")');
+      const startCount = await allStart.count().catch(() => 0);
+      let panelStartBtn = null;
+      for (let i = 0; i < startCount; i++) {
+        const btn = allStart.nth(i);
+        const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
+        if (!visible) continue;
+        const inTargetPanel = await btn.evaluate((el, pLabel) => {
+          let node = el.parentElement;
+          for (let j = 0; j < 6; j++) {
+            if (!node) break;
+            if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
+            node = node.parentElement;
+          }
+          return false;
+        }, providerLabel).catch(() => false);
+        if (inTargetPanel) { panelStartBtn = btn; break; }
+      }
+      if (panelStartBtn) {
         console.error(`INFO: ${providerLabel} panel open but sandbox not started — clicking Start Sandbox...`);
-        await page.locator('button:has-text("Start Sandbox")').first().click({ force: true }).catch(() => {});
+        await panelStartBtn.click({ force: true }).catch(() => {});
         await page.waitForTimeout(5000);
         continue;
       }
