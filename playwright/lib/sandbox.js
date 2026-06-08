@@ -183,10 +183,15 @@ async function _waitForCredentials(page, providerLabel) {
         const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
         if (!visible) continue;
         const inTargetPanel = await btn.evaluate((el, pLabel) => {
+          const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
+            p => !new RegExp(p, 'i').test(pLabel)
+          );
           let node = el.parentElement;
-          for (let j = 0; j < 6; j++) {
+          for (let j = 0; j < 20; j++) {
             if (!node) break;
-            if (new RegExp(pLabel, 'i').test(node.innerText || '')) return true;
+            const t = node.innerText || '';
+            if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
+            if (new RegExp(pLabel, 'i').test(t) && others.some(p => t.includes(p))) break;
             node = node.parentElement;
           }
           return false;
@@ -297,6 +302,14 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   } else {
     console.error(`WARN: ${conflictingLabel} sandbox deletion may not be complete — proceeding anyway`);
   }
+  // Close the deleted sandbox panel — after deletion it stays open in "Start Sandbox" state
+  // and blocks the target provider's "Open Sandbox" from being actionable.
+  const closeBtn = page.locator('button:has-text("Close")');
+  if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    console.error(`INFO: Closing ${conflictingLabel} panel after deletion...`);
+    await closeBtn.click({ force: true });
+    await page.waitForTimeout(1000);
+  }
 }
 
 async function startSandbox(page, targetUrl, provider) {
@@ -395,10 +408,11 @@ async function startSandbox(page, targetUrl, provider) {
         if (!visible || !enabled) continue;
         const inTargetCard = await btn.evaluate((el, [pLabel, others]) => {
           let node = el.parentElement;
-          for (let j = 0; j < 8; j++) {
+          for (let j = 0; j < 20; j++) {
             if (!node) break;
             const t = node.innerText || '';
             if (new RegExp(pLabel, 'i').test(t) && !others.some(p => t.includes(p))) return true;
+            if (new RegExp(pLabel, 'i').test(t) && others.some(p => t.includes(p))) break;
             node = node.parentElement;
           }
           return false;
