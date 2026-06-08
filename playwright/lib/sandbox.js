@@ -135,7 +135,7 @@ async function _waitForSandboxEntrySoft(page, timeout = 30000) {
 
 async function _dismissExtendYourSessionDialog(page) {
   const dialogVisible = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('[role="dialog"]'))
+    Array.from(document.querySelectorAll('[data-testid="extend-sandbox-modal"], [role="alertdialog"], [role="dialog"]'))
       .some(d => (d.innerText || '').includes('Extend Your Session'))
   ).catch(() => false);
   if (!dialogVisible) return;
@@ -173,9 +173,8 @@ async function _waitForCredentials(page, providerLabel) {
       );
       if (vals.every(v => v.trim().length > 0)) return;
       // Panel open but credentials not yet populated — check for provider-scoped Start Sandbox.
-      // Walk up from each Start Sandbox button (depth 6, no exclusion): depth 6 reaches the
-      // panel container with providerLabel text but stays within the panel, before the shared
-      // card-grid ancestor where both provider names appear (reached at depth 7-8).
+      // Walk up to 20 ancestors with provider-exclusion: stops when a node contains providerLabel
+      // but not any other provider keyword, to avoid matching shared card-grid ancestors.
       const allStart = page.locator('button:has-text("Start Sandbox")');
       const startCount = await allStart.count().catch(() => 0);
       let panelStartBtn = null;
@@ -359,7 +358,7 @@ async function startSandbox(page, targetUrl, provider) {
 
   console.error(`INFO: Looking for ${providerLabel} sandbox buttons...`);
   await page.addLocatorHandler(
-    page.locator('text=/sandbox has been extended/i'),
+    page.locator('text=/sandbox has been extended|session extended/i'),
     async () => {
       const closeBtn = page.locator(
         'button[aria-label="close"], button[aria-label="Close"], button[aria-label="Dismiss"]'

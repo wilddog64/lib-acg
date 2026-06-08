@@ -15,22 +15,6 @@ async function extractCredentials(page, outputFn) {
     });
   }, { timeout: 15000 });
 
-  function detectLabel(inp) {
-    let node = inp.parentElement;
-    for (let j = 0; j < 6; j++) {
-      if (!node) break;
-      const t = node.innerText || '';
-      if (/client\s+secret|\bsecret\b/i.test(t)) return 'clientSecret';
-      if (/client/i.test(t)) return 'clientId';
-      if (/username|email/i.test(t)) return 'username';
-      if (/\bpassword\b/i.test(t)) return 'password';
-      if (/subscription/i.test(t)) return 'subscription';
-      if (/tenant|directory/i.test(t)) return 'tenant';
-      node = node.parentElement;
-    }
-    return null;
-  }
-
   const { azureInputs, allInputs } = await page.evaluate(() => {
     function detectLabel(inp) {
       let node = inp.parentElement;
@@ -60,7 +44,7 @@ async function extractCredentials(page, outputFn) {
         node = node.parentElement;
       }
       return false;
-    }).map(inp => ({ value: inp.value.substring(0, 8) + '...', fieldLabel: detectLabel(inp), fullValue: inp.value }));
+    }).map(inp => ({ fieldLabel: detectLabel(inp), fullValue: inp.value }));
 
     // Deep scan: walk 20 ancestors for subscription/tenant detection
     function detectLabelDeep(inp) {
@@ -77,7 +61,7 @@ async function extractCredentials(page, outputFn) {
 
     const allScanned = inputs.map(inp => {
       const fl = detectLabel(inp) || detectLabelDeep(inp);
-      return { value: inp.value.substring(0, 8) + '...', fieldLabel: fl, fullValue: inp.value };
+      return { fieldLabel: fl, fullValue: inp.value };
     });
 
     return { azureInputs: azureScoped, allInputs: allScanned };
