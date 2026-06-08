@@ -45,18 +45,21 @@ async function extractCredentials(page, outputFn) {
           }
           node = node.parentElement;
         }
-        return { value: inp.value, fieldLabel };
+        return { value: inp.value.substring(0, 8) + '...', fieldLabel, fullValue: inp.value };
       });
   });
 
   console.error(`INFO: Found ${azureInputs.length} Azure-scoped copyable inputs.`);
+  azureInputs.forEach((inp, i) => {
+    console.error(`DEBUG: input[${i}] label=${inp.fieldLabel ?? 'null'} prefix=${inp.value}`);
+  });
 
   if (azureInputs.length === 0) {
     throw new Error('No credentials found in Azure provider card');
   }
 
   let username, password, subscriptionId, tenantId, clientId, clientSecret;
-  for (const { value: val, fieldLabel } of azureInputs) {
+  for (const { fullValue: val, fieldLabel } of azureInputs) {
     if (fieldLabel === 'clientId' && !clientId) clientId = val;
     else if (fieldLabel === 'clientSecret' && !clientSecret) clientSecret = val;
     if (fieldLabel === 'username' && !username) username = val;
@@ -65,12 +68,12 @@ async function extractCredentials(page, outputFn) {
     else if (fieldLabel === 'tenant' && !tenantId) tenantId = val;
   }
 
-  if (!username && azureInputs.length >= 1) username = azureInputs[0].value;
-  if (!password && azureInputs.length >= 2) password = azureInputs[1].value;
-  if (!clientId && azureInputs.length >= 3) clientId = azureInputs[2].value;
-  if (!clientSecret && azureInputs.length >= 4) clientSecret = azureInputs[3].value;
-  if (!subscriptionId && azureInputs.length >= 5) subscriptionId = azureInputs[4].value;
-  if (!tenantId && azureInputs.length >= 6) tenantId = azureInputs[5].value;
+  if (!username && azureInputs.length >= 1) username = azureInputs[0].fullValue;
+  if (!password && azureInputs.length >= 2) password = azureInputs[1].fullValue;
+  if (!clientId && azureInputs.length >= 3) clientId = azureInputs[2].fullValue;
+  if (!clientSecret && azureInputs.length >= 4) clientSecret = azureInputs[3].fullValue;
+  if (!subscriptionId && azureInputs.length >= 5) subscriptionId = azureInputs[4].fullValue;
+  if (!tenantId && azureInputs.length >= 6) tenantId = azureInputs[5].fullValue;
 
   const hasUserPass = username && password;
   const hasServicePrincipal = clientId && clientSecret;
