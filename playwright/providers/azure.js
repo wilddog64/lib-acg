@@ -62,7 +62,23 @@ async function extractCredentials(page, outputFn) {
       return false;
     }).map(inp => ({ value: inp.value.substring(0, 8) + '...', fieldLabel: detectLabel(inp), fullValue: inp.value }));
 
-    const allScanned = inputs.map(inp => ({ value: inp.value.substring(0, 8) + '...', fieldLabel: detectLabel(inp), fullValue: inp.value }));
+    // Deep scan: walk 20 ancestors for subscription/tenant detection
+    function detectLabelDeep(inp) {
+      let node = inp.parentElement;
+      for (let j = 0; j < 20; j++) {
+        if (!node) break;
+        const t = node.innerText || '';
+        if (/subscription/i.test(t)) return 'subscription';
+        if (/tenant|directory/i.test(t)) return 'tenant';
+        node = node.parentElement;
+      }
+      return null;
+    }
+
+    const allScanned = inputs.map(inp => {
+      const fl = detectLabel(inp) || detectLabelDeep(inp);
+      return { value: inp.value.substring(0, 8) + '...', fieldLabel: fl, fullValue: inp.value };
+    });
 
     return { azureInputs: azureScoped, allInputs: allScanned };
   });
@@ -101,13 +117,28 @@ async function extractCredentials(page, outputFn) {
     }
   }
 
-  // Pass 3: positional fallback for Azure-scoped inputs
+  // Pass 3: UUID-pattern fallback — subscription and tenant are UUIDs, secret is not
+  if (!subscriptionId || !tenantId) {
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidInputs = allInputs
+      .filter(({ fullValue: v }) => uuidRe.test(v.trim()) && v.trim() !== clientId)
+      .map(({ fullValue: v }) => v.trim());
+    console.error(`DEBUG: UUID-pattern candidates (excl clientId): ${uuidInputs.map(v => v.substring(0, 8) + '...').join(', ')}`);
+    if (!subscriptionId && uuidInputs.length >= 1) {
+      subscriptionId = uuidInputs[0];
+      console.error(`DEBUG: subscription assigned via UUID fallback: ${subscriptionId.substring(0, 8)}...`);
+    }
+    if (!tenantId && uuidInputs.length >= 2) {
+      tenantId = uuidInputs[1];
+      console.error(`DEBUG: tenant assigned via UUID fallback: ${tenantId.substring(0, 8)}...`);
+    }
+  }
+
+  // Pass 4: positional fallback for Azure-scoped inputs (4-field layout)
   if (!username && azureInputs.length >= 1) username = azureInputs[0].fullValue;
   if (!password && azureInputs.length >= 2) password = azureInputs[1].fullValue;
   if (!clientId && azureInputs.length >= 3) clientId = azureInputs[2].fullValue;
   if (!clientSecret && azureInputs.length >= 4) clientSecret = azureInputs[3].fullValue;
-  if (!subscriptionId && azureInputs.length >= 5) subscriptionId = azureInputs[4].fullValue;
-  if (!tenantId && azureInputs.length >= 6) tenantId = azureInputs[5].fullValue;
 
   const hasUserPass = username && password;
   const hasServicePrincipal = clientId && clientSecret;
