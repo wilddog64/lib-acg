@@ -15,38 +15,56 @@ async function extractCredentials(page, outputFn) {
     });
   }, { timeout: 15000 });
 
-  const azureInputs = await page.evaluate(() => {
+  function detectLabel(inp) {
+    let node = inp.parentElement;
+    for (let j = 0; j < 6; j++) {
+      if (!node) break;
+      const t = node.innerText || '';
+      if (/client\s+secret|\bsecret\b/i.test(t)) return 'clientSecret';
+      if (/client/i.test(t)) return 'clientId';
+      if (/username|email/i.test(t)) return 'username';
+      if (/\bpassword\b/i.test(t)) return 'password';
+      if (/subscription/i.test(t)) return 'subscription';
+      if (/tenant|directory/i.test(t)) return 'tenant';
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  const { azureInputs, allInputs } = await page.evaluate(() => {
+    function detectLabel(inp) {
+      let node = inp.parentElement;
+      for (let j = 0; j < 6; j++) {
+        if (!node) break;
+        const t = node.innerText || '';
+        if (/client\s+secret|\bsecret\b/i.test(t)) return 'clientSecret';
+        if (/client/i.test(t)) return 'clientId';
+        if (/username|email/i.test(t)) return 'username';
+        if (/\bpassword\b/i.test(t)) return 'password';
+        if (/subscription/i.test(t)) return 'subscription';
+        if (/tenant|directory/i.test(t)) return 'tenant';
+        node = node.parentElement;
+      }
+      return null;
+    }
+
     const others = ['AWS', 'Google Cloud', 'GCP'];
     const inputs = Array.from(document.querySelectorAll('input[aria-label="Copyable input"]'));
-    return inputs
-      .filter(inp => {
-        let node = inp.parentElement;
-        for (let j = 0; j < 12; j++) {
-          if (!node) break;
-          const t = node.innerText || '';
-          if (/azure/i.test(t) && !others.some(p => t.includes(p))) return true;
-          node = node.parentElement;
-        }
-        return false;
-      })
-      .map(inp => {
-        let node = inp.parentElement;
-        let fieldLabel = null;
-        for (let j = 0; j < 6; j++) {
-          if (!node) break;
-          const t = node.innerText || '';
-          if (!fieldLabel) {
-            if (/client\s+secret|\bsecret\b/i.test(t)) fieldLabel = 'clientSecret';
-            else if (/client/i.test(t)) fieldLabel = 'clientId';
-            else if (/username|email/i.test(t)) fieldLabel = 'username';
-            else if (/password/i.test(t)) fieldLabel = 'password';
-            else if (/subscription/i.test(t)) fieldLabel = 'subscription';
-            else if (/tenant|directory/i.test(t)) fieldLabel = 'tenant';
-          }
-          node = node.parentElement;
-        }
-        return { value: inp.value.substring(0, 8) + '...', fieldLabel, fullValue: inp.value };
-      });
+
+    const azureScoped = inputs.filter(inp => {
+      let node = inp.parentElement;
+      for (let j = 0; j < 12; j++) {
+        if (!node) break;
+        const t = node.innerText || '';
+        if (/azure/i.test(t) && !others.some(p => t.includes(p))) return true;
+        node = node.parentElement;
+      }
+      return false;
+    }).map(inp => ({ value: inp.value.substring(0, 8) + '...', fieldLabel: detectLabel(inp), fullValue: inp.value }));
+
+    const allScanned = inputs.map(inp => ({ value: inp.value.substring(0, 8) + '...', fieldLabel: detectLabel(inp), fullValue: inp.value }));
+
+    return { azureInputs: azureScoped, allInputs: allScanned };
   });
 
   console.error(`INFO: Found ${azureInputs.length} Azure-scoped copyable inputs.`);
@@ -59,6 +77,8 @@ async function extractCredentials(page, outputFn) {
   }
 
   let username, password, subscriptionId, tenantId, clientId, clientSecret;
+
+  // Pass 1: label-detected fields from Azure-scoped inputs
   for (const { fullValue: val, fieldLabel } of azureInputs) {
     if (fieldLabel === 'clientId' && !clientId) clientId = val;
     else if (fieldLabel === 'clientSecret' && !clientSecret) clientSecret = val;
@@ -68,6 +88,20 @@ async function extractCredentials(page, outputFn) {
     else if (fieldLabel === 'tenant' && !tenantId) tenantId = val;
   }
 
+  // Pass 2: if subscription or tenant still missing, scan all inputs by label
+  if (!subscriptionId || !tenantId) {
+    for (const { fullValue: val, fieldLabel } of allInputs) {
+      if (fieldLabel === 'subscription' && !subscriptionId) {
+        subscriptionId = val;
+        console.error(`DEBUG: subscription found via all-inputs scan: ${val.substring(0, 8)}...`);
+      } else if (fieldLabel === 'tenant' && !tenantId) {
+        tenantId = val;
+        console.error(`DEBUG: tenant found via all-inputs scan: ${val.substring(0, 8)}...`);
+      }
+    }
+  }
+
+  // Pass 3: positional fallback for Azure-scoped inputs
   if (!username && azureInputs.length >= 1) username = azureInputs[0].fullValue;
   if (!password && azureInputs.length >= 2) password = azureInputs[1].fullValue;
   if (!clientId && azureInputs.length >= 3) clientId = azureInputs[2].fullValue;
