@@ -13,6 +13,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `package.json` + `package-lock.json`: align version fields to `0.3.0` (were `0.2.0` and `0.1.0` respectively)
 
 ### Fixed
+- `bin/acg-credential-test`: validate Azure service-principal credentials with `az login --service-principal` after extraction, auto-discovering tenant from OIDC endpoint when not present in Pluralsight UI, and discovering subscription from `az account show` when unavailable in UI; output shows account name only (subscription ID masked)
+- `playwright/providers/azure.js`: detect `clientSecret` before `clientId` in Application ID field label scan (Azure layout ordering); add multi-pass scan with UUID-pattern fallback for subscription/tenant when not found on first pass; correctly set fallback field positions for 4-field layout variant
+- `bin/acg-credential-test`: add OIDC tenant discovery when Azure tenant is not visible in Pluralsight UI — query `https://login.microsoftonline.com/<domain>/.well-known/openid-configuration` to extract tenant ID from username domain
+- `bin/acg-credential-test`: mask tenant ID and subscription ID in terminal output; expose `az login` error messages to stderr
+- `playwright/acg_credentials.js`: add `addLocatorHandler` to dismiss "Session extended" toast by clicking its close button, re-opening the credential panel if toast dismissal collapsed it
+- `playwright/lib/sandbox.js` and `playwright/providers/azure.js`: exclude shared-container DOM elements from conflicting sandbox detection — walk stops at provider-keyword ancestor to prevent false-positive matches on containers visible in multiple provider cards
 - `playwright/lib/sandbox.js` and `playwright/acg_restart.js`: scope the post-Open-Sandbox `startButton2` fallback and the restart-flow Delete/Open/Start button lookups to the target provider card so AWS no longer wins the DOM-first fallback when Azure is the intended sandbox
 - `playwright/providers/azure.js`: add Application Client ID and Secret extraction so Azure service-principal creds are emitted as `AZURE_CLIENT_ID` and `AZURE_CLIENT_SECRET` when the sandbox shows those fields instead of username/password
 - `playwright/lib/sandbox.js`: make `_dismissExtendYourSessionDialog` click the Extend button with `force: true` and check `credentialsAlreadyVisible` before `_deleteConflictingSandbox` so already-running sandboxes skip the unnecessary delete attempt
