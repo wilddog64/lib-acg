@@ -280,11 +280,17 @@ async function _deleteConflictingSandbox(page, targetProvider) {
       { label: 'Azure', keywords: ['Azure'] },
     ].filter(c => !c.keywords.some(k => tLabel.toLowerCase().includes(k.toLowerCase())));
 
+    const allProviderKeywords = ['AWS', 'Google Cloud', 'GCP', 'Azure'];
     for (const c of candidates) {
+      const otherKeywords = allProviderKeywords.filter(k => !c.keywords.includes(k));
       const found = Array.from(document.querySelectorAll('*'))
         .some(el => {
           const t = el.innerText || '';
-          return t.includes('Auto Shutdown') && c.keywords.some(k => t.includes(k));
+          if (!t.includes('Auto Shutdown')) return false;
+          if (!c.keywords.some(k => t.includes(k))) return false;
+          // Skip shared containers that mention other providers
+          if (otherKeywords.some(k => t.includes(k))) return false;
+          return true;
         });
       if (found) return c.label;
     }
