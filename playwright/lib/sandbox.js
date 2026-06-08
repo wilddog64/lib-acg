@@ -242,6 +242,30 @@ async function _findScopedButton(page, buttonText, providerLabel, timeoutMs) {
   return null;
 }
 
+async function _closeOpenPanel(page, label) {
+  const closeBtn = page.locator(
+    'button:has-text("Close"), button[aria-label="close"], button[aria-label="Close"], button[aria-label="Dismiss"]'
+  ).first();
+  if (await closeBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+    console.error(`INFO: Closing ${label} panel (close button)...`);
+    await closeBtn.click({ force: true });
+    await page.waitForTimeout(800);
+  }
+  const stillOpen = await page.locator('input[aria-label="Copyable input"]').isVisible({ timeout: 500 }).catch(() => false);
+  if (!stillOpen) return;
+
+  console.error(`INFO: Close button did not dismiss ${label} panel — pressing Escape...`);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(800);
+  const stillOpen2 = await page.locator('input[aria-label="Copyable input"]').isVisible({ timeout: 500 }).catch(() => false);
+  if (!stillOpen2) return;
+
+  console.error(`INFO: Escape did not dismiss ${label} panel — clicking overlay backdrop...`);
+  const size = page.viewportSize();
+  await page.mouse.click(size ? Math.floor(size.width * 0.05) : 30, size ? Math.floor(size.height * 0.5) : 300);
+  await page.waitForTimeout(800);
+}
+
 async function _deleteConflictingSandbox(page, targetProvider) {
   const _providerLabels = { aws: 'AWS', gcp: 'Google Cloud', azure: 'Azure' };
   const targetLabel = _providerLabels[targetProvider] || targetProvider;
@@ -265,6 +289,22 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   }, targetLabel).catch(() => null);
 
   if (!conflictingLabel) return;
+
+  // If the conflicting panel is already open in "Start Sandbox" state (not running —
+  // no Delete Sandbox button), just close it and return. Nothing to delete.
+  const panelInStartState = await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'));
+    const hasStart = btns.some(b => (b.innerText || '').trim() === 'Start Sandbox' && !b.disabled);
+    const hasDelete = btns.some(b => (b.innerText || '').includes('Delete Sandbox'));
+    const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
+    return hasStart && !hasDelete && inputs.length > 0;
+  }).catch(() => false);
+
+  if (panelInStartState) {
+    console.error(`INFO: ${conflictingLabel} panel open in Start Sandbox state (not running) — closing panel...`);
+    await _closeOpenPanel(page, conflictingLabel);
+    return;
+  }
 
   console.error(`INFO: Running ${conflictingLabel} sandbox detected — deleting before starting ${targetLabel}...`);
 
@@ -300,18 +340,7 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   } else {
     console.error(`WARN: ${conflictingLabel} sandbox deletion may not be complete — proceeding anyway`);
   }
-  // Close the deleted sandbox panel — after deletion it stays open in "Start Sandbox" state
-  // and blocks the target provider's "Open Sandbox" from being actionable.
-  const closeBtn = page.locator('button:has-text("Close"), button[aria-label="close"], button[aria-label="Close"]').first();
-  if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    console.error(`INFO: Closing ${conflictingLabel} panel after deletion...`);
-    await closeBtn.click({ force: true });
-    await page.waitForTimeout(1000);
-  } else {
-    console.error(`INFO: No Close button found — pressing Escape to dismiss ${conflictingLabel} panel...`);
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(1000);
-  }
+  await _closeOpenPanel(page, conflictingLabel);
 }
 
 async function startSandbox(page, targetUrl, provider) {
