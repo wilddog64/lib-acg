@@ -369,7 +369,17 @@ async function startSandbox(page, targetUrl, provider) {
       } else {
         await page.keyboard.press('Escape').catch(() => {});
       }
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(800);
+      // If the toast dismissal closed the credential panel, re-open it
+      const inputsVisible = await page.locator('input[aria-label="Copyable input"]').first().isVisible({ timeout: 500 }).catch(() => false);
+      if (!inputsVisible) {
+        const openBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 3000).catch(() => null);
+        if (openBtn) {
+          console.error('INFO: Credential panel closed after toast dismiss — re-opening...');
+          await openBtn.click({ force: true }).catch(() => {});
+          await page.waitForTimeout(1000);
+        }
+      }
     }
   ).catch(() => {});
   await _dismissExtendYourSessionDialog(page);
