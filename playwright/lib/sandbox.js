@@ -360,7 +360,17 @@ async function startSandbox(page, targetUrl, provider) {
   console.error(`INFO: Looking for ${providerLabel} sandbox buttons...`);
   await page.addLocatorHandler(
     page.locator('text=/sandbox has been extended/i'),
-    async () => { await page.waitForTimeout(500); }
+    async () => {
+      const closeBtn = page.locator(
+        'button[aria-label="close"], button[aria-label="Close"], button[aria-label="Dismiss"]'
+      ).first();
+      if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await closeBtn.click({ force: true }).catch(() => {});
+      } else {
+        await page.keyboard.press('Escape').catch(() => {});
+      }
+      await page.waitForTimeout(500);
+    }
   ).catch(() => {});
   await _dismissExtendYourSessionDialog(page);
   let sandboxEntryReady = await _waitForSandboxEntrySoft(page, 30000);
