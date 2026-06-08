@@ -166,9 +166,12 @@ async function _waitForCredentials(page, providerLabel) {
   while (Date.now() < deadline) {
     await _dismissExtendYourSessionDialog(page);
     const inputs = page.locator('input[aria-label="Copyable input"]');
-    if (await inputs.count() > 0) {
-      const value = await inputs.first().inputValue().catch(() => '');
-      if (value.trim().length > 0) return;
+    const inputCount = await inputs.count().catch(() => 0);
+    if (inputCount > 0) {
+      const vals = await Promise.all(
+        Array.from({ length: inputCount }, (_, i) => inputs.nth(i).inputValue().catch(() => ''))
+      );
+      if (vals.every(v => v.trim().length > 0)) return;
       // Panel open but credentials not yet populated — check for provider-scoped Start Sandbox.
       // Walk up from each Start Sandbox button (depth 6, no exclusion): depth 6 reaches the
       // panel container with providerLabel text but stays within the panel, before the shared
