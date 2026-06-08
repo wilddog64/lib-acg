@@ -36,12 +36,12 @@ async function extractCredentials(page, outputFn) {
           if (!node) break;
           const t = node.innerText || '';
           if (!fieldLabel) {
-            if (/client/i.test(t)) fieldLabel = 'clientId';
-            else if (/\bsecret\b/i.test(t)) fieldLabel = 'clientSecret';
+            if (/client\s+secret|\bsecret\b/i.test(t)) fieldLabel = 'clientSecret';
+            else if (/client/i.test(t)) fieldLabel = 'clientId';
             else if (/username|email/i.test(t)) fieldLabel = 'username';
             else if (/password/i.test(t)) fieldLabel = 'password';
             else if (/subscription/i.test(t)) fieldLabel = 'subscription';
-            else if (/tenant/i.test(t)) fieldLabel = 'tenant';
+            else if (/tenant|directory/i.test(t)) fieldLabel = 'tenant';
           }
           node = node.parentElement;
         }
@@ -67,8 +67,10 @@ async function extractCredentials(page, outputFn) {
 
   if (!username && azureInputs.length >= 1) username = azureInputs[0].value;
   if (!password && azureInputs.length >= 2) password = azureInputs[1].value;
-  if (!subscriptionId && azureInputs.length >= 3) subscriptionId = azureInputs[2].value;
-  if (!tenantId && azureInputs.length >= 4) tenantId = azureInputs[3].value;
+  if (!clientId && azureInputs.length >= 3) clientId = azureInputs[2].value;
+  if (!clientSecret && azureInputs.length >= 4) clientSecret = azureInputs[3].value;
+  if (!subscriptionId && azureInputs.length >= 5) subscriptionId = azureInputs[4].value;
+  if (!tenantId && azureInputs.length >= 6) tenantId = azureInputs[5].value;
 
   const hasUserPass = username && password;
   const hasServicePrincipal = clientId && clientSecret;
