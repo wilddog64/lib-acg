@@ -140,17 +140,15 @@ async function _dismissExtendYourSessionDialog(page) {
   ).catch(() => false);
   if (!dialogVisible) return;
 
-  console.error('INFO: "Extend Your Session" dialog detected — clicking Extend button...');
-  await page.bringToFront();
   const extendBtn = page.locator(
     '[data-testid="extend-sandbox-modal"] button:has-text("Extend"), [role="alertdialog"] button:has-text("Extend"), [role="dialog"] button:has-text("Extend")'
   ).first();
   const extendVisible = await extendBtn.isVisible({ timeout: 2000 }).catch(() => false);
-  if (extendVisible) {
-    await extendBtn.click({ force: true }).catch(() => {});
-  } else {
-    await page.keyboard.press('Enter').catch(() => {});
-  }
+  if (!extendVisible) return;
+
+  console.error('INFO: "Extend Your Session" dialog detected — clicking Extend button...');
+  await page.bringToFront();
+  await extendBtn.click({ force: true }).catch(() => {});
   await page.waitForTimeout(1000);
   const dialogClosed = await page.waitForFunction(
     () => !Array.from(document.querySelectorAll('[role="dialog"]'))
@@ -304,10 +302,14 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   }
   // Close the deleted sandbox panel — after deletion it stays open in "Start Sandbox" state
   // and blocks the target provider's "Open Sandbox" from being actionable.
-  const closeBtn = page.locator('button:has-text("Close")');
+  const closeBtn = page.locator('button:has-text("Close"), button[aria-label="close"], button[aria-label="Close"]').first();
   if (await closeBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     console.error(`INFO: Closing ${conflictingLabel} panel after deletion...`);
     await closeBtn.click({ force: true });
+    await page.waitForTimeout(1000);
+  } else {
+    console.error(`INFO: No Close button found — pressing Escape to dismiss ${conflictingLabel} panel...`);
+    await page.keyboard.press('Escape');
     await page.waitForTimeout(1000);
   }
 }
