@@ -39,14 +39,9 @@ async function navigateToSandbox(page, targetUrl) {
   if (currentHostname !== 'app.pluralsight.com') {
     console.error(`INFO: Navigating to ${targetUrl}...`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  } else if (currentPathname === targetPathname) {
+  } else if (currentPathname === targetPathname || currentPathname.startsWith(targetPathname)) {
+    // Already on the target page or a sandbox-specific subpath (e.g. /cloud-sandboxes/<id>)
     console.error(`INFO: Already on ${currentUrl} — skipping navigation`);
-  } else if (targetPathname.includes('cloud-sandboxes')) {
-    console.error(`INFO: SPA-navigating to cloud-sandboxes from ${currentUrl}...`);
-    // navLink.click() follows href to s2.pluralsight.com (404); also times out if
-    // the Extend Your Session dialog reappears between dismiss and click.
-    await page.evaluate(url => window.location.assign(url), targetUrl);
-    await page.waitForLoadState('domcontentloaded', { timeout: 60000 }).catch(() => {});
   } else {
     console.error(`INFO: Navigating to ${targetUrl}...`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
