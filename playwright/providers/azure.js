@@ -84,9 +84,6 @@ async function extractCredentials(page, outputFn) {
   });
 
   console.error(`INFO: Found ${azureInputs.length} Azure-scoped copyable inputs.`);
-  azureInputs.forEach((inp, i) => {
-    console.error(`DEBUG: input[${i}] label=${inp.fieldLabel ?? 'null'} prefix=${inp.value}`);
-  });
 
   if (azureInputs.length === 0) {
     throw new Error('No credentials found in Azure provider card');
@@ -107,13 +104,8 @@ async function extractCredentials(page, outputFn) {
   // Pass 2: if subscription or tenant still missing, scan all inputs by label
   if (!subscriptionId || !tenantId) {
     for (const { fullValue: val, fieldLabel } of allInputs) {
-      if (fieldLabel === 'subscription' && !subscriptionId) {
-        subscriptionId = val;
-        console.error(`DEBUG: subscription found via all-inputs scan: ${val.substring(0, 8)}...`);
-      } else if (fieldLabel === 'tenant' && !tenantId) {
-        tenantId = val;
-        console.error(`DEBUG: tenant found via all-inputs scan: ${val.substring(0, 8)}...`);
-      }
+      if (fieldLabel === 'subscription' && !subscriptionId) subscriptionId = val;
+      else if (fieldLabel === 'tenant' && !tenantId) tenantId = val;
     }
   }
 
@@ -123,15 +115,8 @@ async function extractCredentials(page, outputFn) {
     const uuidInputs = allInputs
       .filter(({ fullValue: v }) => uuidRe.test(v.trim()) && v.trim() !== clientId)
       .map(({ fullValue: v }) => v.trim());
-    console.error(`DEBUG: UUID-pattern candidates (excl clientId): ${uuidInputs.map(v => v.substring(0, 8) + '...').join(', ')}`);
-    if (!subscriptionId && uuidInputs.length >= 1) {
-      subscriptionId = uuidInputs[0];
-      console.error(`DEBUG: subscription assigned via UUID fallback: ${subscriptionId.substring(0, 8)}...`);
-    }
-    if (!tenantId && uuidInputs.length >= 2) {
-      tenantId = uuidInputs[1];
-      console.error(`DEBUG: tenant assigned via UUID fallback: ${tenantId.substring(0, 8)}...`);
-    }
+    if (!subscriptionId && uuidInputs.length >= 1) subscriptionId = uuidInputs[0];
+    if (!tenantId && uuidInputs.length >= 2) tenantId = uuidInputs[1];
   }
 
   // Pass 4: positional fallback for Azure-scoped inputs (4-field layout)
