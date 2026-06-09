@@ -1,6 +1,9 @@
 # Active Context — lib-acg
 
-## Current Branch: `feat/v0.1.3`
+## Current Branch: `fix/acg-sandbox-expired-login-retry`
+
+## Current Status (2026-06-09 — sandbox expired-login regression fix in progress)
+- **COMPLETE:** sandbox expired-login regression bug doc created on `fix/acg-sandbox-expired-login-retry`; `docs/bugs/2026-06-09-acg-sandbox-expired-login-redirect.md` records the stale Hands-on retry hop that can redirect an expired ACG sandbox into `/id` or the login page, and the intended fix is to retry directly to `targetUrl` and fail fast on login redirects instead of re-entering the old Hands-on route.
 
 ## Current Status (2026-06-07 — v0.1.3 force:true fix in PR #38)
 - **IN PROGRESS:** PR #38 open — `fix(sandbox): restore force:true on Start/Resume Sandbox clicks`; fix commit `07a9b29`; CI green; Copilot review in progress. Bug spec: `docs/bugs/2026-06-07-sandbox-start-button-click-force-missing.md`. Root cause: v0.1.2 added `scrollIntoViewIfNeeded()` but omitted `{ force: true }`, so post-scroll layout shift from `addLocatorHandler` still fails the click.
