@@ -3,7 +3,7 @@
 ## Current Branch: `feat/v0.1.4`
 
 ## Current Status (2026-06-09 — sandbox expired-login regression fix merged)
-- **COMPLETE:** sandbox expired-login regression fix merged from `fix/acg-sandbox-expired-login-retry`; `docs/bugs/2026-06-09-acg-sandbox-expired-login-redirect.md` records the stale Hands-on retry hop that can redirect an expired ACG sandbox into `/id` or the login page, and `playwright/lib/sandbox.js` now retries directly to `targetUrl` and fails fast if the resumed session lands on `/id`, `sign-in`, or `login` instead of continuing through the old Hands-on recovery route.
+- **COMPLETE:** sandbox expired-login regression fix merged — lib-acg merge commit `83bea63` on `feat/v0.1.4`; `docs/bugs/2026-06-09-acg-sandbox-expired-login-redirect.md` records the stale Hands-on retry hop that can redirect an expired ACG sandbox into `/id` or the login page, and `playwright/lib/sandbox.js` now retries directly to `targetUrl` and fails fast if the resumed session lands on `/id`, `sign-in`, or `login` instead of continuing through the old Hands-on recovery route.
 
 ## Current Status (2026-06-07 — _waitForCredentials Start Sandbox not clicked fix complete)
 
