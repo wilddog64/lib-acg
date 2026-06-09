@@ -200,14 +200,12 @@ async function startSandbox(page, targetUrl) {
     try { return new URL(targetUrl).pathname; } catch { return ''; }
   })();
   if (!sandboxEntryReady && retryPathname.includes('cloud-sandboxes') && !page.url().includes('cloud-sandboxes')) {
-    console.error(`INFO: Sandbox route not active (${page.url()}) — retrying via Hands-on route...`);
-    await page.goto('https://app.pluralsight.com/hands-on', { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForFunction(() => {
-      return document.readyState === 'complete' ||
-        Boolean(document.querySelector('a[href*="cloud-sandboxes"]')) ||
-        document.body.innerText.includes('Cloud Sandboxes');
-    }, { timeout: 15000 }).catch(() => console.error('WARN: Hands-on route did not settle before sandbox retry'));
+    console.error(`INFO: Sandbox route not active (${page.url()}) — retrying directly via targetUrl...`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const postRetryUrl = page.url();
+    if (postRetryUrl.includes('/id') || postRetryUrl.includes('sign-in') || postRetryUrl.includes('login')) {
+      throw new Error(`Pluralsight session expired — redirected to ${postRetryUrl}. Re-open or re-create the sandbox and retry.`);
+    }
     sandboxEntryReady = await _waitForSandboxEntrySoft(page, 30000);
   }
   await _dismissExtendYourSessionDialog(page);
