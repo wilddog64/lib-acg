@@ -382,8 +382,12 @@ async function startSandbox(page, targetUrl, provider) {
     try { return new URL(targetUrl).pathname; } catch { return ''; }
   })();
   if (!sandboxEntryReady && retryPathname.includes('cloud-sandboxes') && !page.url().includes('cloud-sandboxes')) {
-    console.error(`INFO: Sandbox route not active (${page.url()}) — navigating directly back to sandbox URL...`);
+    console.error(`INFO: Sandbox route not active (${page.url()}) — retrying directly via targetUrl...`);
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const postRetryUrl = page.url();
+    if (postRetryUrl.includes('/id') || postRetryUrl.includes('sign-in') || postRetryUrl.includes('login')) {
+      throw new Error(`Pluralsight session expired — redirected to ${postRetryUrl}. Re-open or re-create the sandbox and retry.`);
+    }
     sandboxEntryReady = await _waitForSandboxEntrySoft(page, 30000);
   }
   await _dismissExtendYourSessionDialog(page);

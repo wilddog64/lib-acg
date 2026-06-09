@@ -13,6 +13,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `package.json` + `package-lock.json`: align version fields to `0.3.0` (were `0.2.0` and `0.1.0` respectively)
 
 ### Fixed
+- `playwright/lib/sandbox.js`: remove the stale Hands-on intermediate retry hop in `startSandbox()` — when an expired sandbox redirects the resumed Playwright session to login (`/id`, `sign-in`, or `login`), fail fast instead of continuing through the old recovery route that loses the sandbox context
 - `bin/acg-credential-test`: validate Azure service-principal credentials with `az login --service-principal` after extraction, auto-discovering tenant from OIDC endpoint when not present in Pluralsight UI, and discovering subscription from `az account show` when unavailable in UI; output shows account name only (subscription ID masked)
 - `playwright/providers/azure.js`: detect `clientSecret` before `clientId` in Application ID field label scan (Azure layout ordering); add multi-pass scan with UUID-pattern fallback for subscription/tenant when not found on first pass; correctly set fallback field positions for 4-field layout variant
 - `bin/acg-credential-test`: add OIDC tenant discovery when Azure tenant is not visible in Pluralsight UI — query `https://login.microsoftonline.com/<domain>/.well-known/openid-configuration` to extract tenant ID from username domain
