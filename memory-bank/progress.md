@@ -3,6 +3,9 @@
 ## v0.1.5 Track — `feat/v0.1.5` (ACTIVE)
 - Retrospective written; memory-bank updated; next planning cycle open.
 
+## v0.4.0 Track — `main` (SHIPPED)
+- **COMPLETE:** v0.4.0 post-merge housekeeping — tag `v0.4.0` created and pushed (`adafde3c`); GitHub release created; `feat/v0.1.5` branch created from merge SHA; retrospective written to `docs/retro/2026-06-10-v0.4.0-retrospective.md`; memory-bank updated; enforce_admins re-enabled on main.
+
 ## v0.1.4 Track — `feat/v0.1.4` (SHIPPED)
 - **COMPLETE:** Azure CLI auth branches exclusive — lib-acg commit `ae3d43c` on `feat/v0.1.4`; `bin/acg-credential-test` now prefers `az login --service-principal` when `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` are present, falls back to `az login --identity --client-id` when only `AZURE_CLIENT_ID` is exposed, and only uses portal/TAP when no CLI auth path exists at all, so SP/identity failures cannot silently fall through to portal and look like success; `CHANGELOG.md` records the stricter auth-path selection; validation used `shellcheck -S warning bin/acg-credential-test`, `npm test`, and `git diff --check`; commit message: `fix(credential-test): make Azure CLI auth branches exclusive`.
 - **COMPLETE:** Azure CLI auth-method selection corrected — lib-acg commit `9820f09` on `feat/v0.1.4`; `bin/acg-credential-test` now prefers `az login --service-principal` when `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` are present, falls back to `az login --identity --client-id` when only `AZURE_CLIENT_ID` is exposed, and only uses portal/TAP as a last resort; `docs/bugs/2026-06-10-azure-cli-auth-method-selection.md` records why the CLI auth methods must be tried before the portal fallback; validation used `shellcheck -S warning bin/acg-credential-test`, `node --check playwright/lib/sandbox.js`, `node --check playwright/providers/azure.js`, `npm test`, and `git diff --check`; commit message: `fix(credential-test): prefer Azure CLI auth methods before portal fallback`.

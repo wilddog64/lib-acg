@@ -2,8 +2,8 @@
 
 ## Current Branch: `feat/v0.1.5`
 
-## Current Status (2026-06-10 — v0.1.4 released and next branch created)
-- **COMPLETE:** v0.1.4 post-merge housekeeping — `CHANGELOG.md` released with `[0.1.4] - 2026-06-10` entry; tag `v0.1.4` created and pushed; GitHub release created; `feat/v0.1.5` branch created from merge SHA `17e5e4d78903b1158629fdfe2382fed8571f2683`; retrospective written to `docs/retro/2026-06-10-v0.1.4-retrospective.md`; memory-bank updated; enforce_admins re-enabled on main; required reviewers restored.
+## Current Status (2026-06-10 — v0.4.0 released and next branch created)
+- **COMPLETE:** v0.4.0 post-merge housekeeping — tag `v0.4.0` created and pushed (`adafde3c`); GitHub release created at https://github.com/wilddog64/lib-acg/releases/tag/v0.4.0; `feat/v0.1.5` branch created from merge SHA `adafde3c2a66bcd84d6163121b516c1cef2abdf3`; retrospective written to `docs/retro/2026-06-10-v0.4.0-retrospective.md`; enforce_admins re-enabled on main via `gh api` POST (correct syntax: no field params, just POST to the dedicated endpoint).
 
 ## Previous Status (2026-06-10 — Azure CLI auth branches made exclusive)
 - **COMPLETE:** Azure CLI auth branches exclusive — lib-acg commit `ae3d43c` on `feat/v0.1.4`; `bin/acg-credential-test` now prefers `az login --service-principal` when `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` are present, falls back to `az login --identity --client-id` when only `AZURE_CLIENT_ID` is exposed, and only uses portal/TAP when no CLI auth path exists at all, so SP/identity failures cannot silently fall through to portal and look like success; `CHANGELOG.md` records the stricter auth-path selection; validation used `shellcheck -S warning bin/acg-credential-test`, `npm test`, and `git diff --check`; commit message: `fix(credential-test): make Azure CLI auth branches exclusive`.
