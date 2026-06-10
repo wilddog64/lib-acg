@@ -2,6 +2,9 @@
 
 ## Current Branch: `feat/v0.1.4`
 
+## Current Status (2026-06-10 — Azure portal CLI MFA limitation follow-up)
+- **COMPLETE:** Azure portal username/password CLI validation best-effort — lib-acg commit `1501949` on `feat/v0.1.4`; `bin/acg-credential-test` now prefers Azure service-principal validation when `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` are present and treats Azure CLI username/password MFA failures (`AADSTS50126` / MFA unsupported) as a warning instead of a hard exit; bug doc: `docs/bugs/2026-06-10-azure-portal-login-validation-mfa-unsupported.md`; validation used `shellcheck -S warning bin/acg-credential-test` and `npm test`; commit message: `fix(credential-test): treat Azure portal login MFA as non-fatal`
+
 ## Current Status (2026-06-09 — sandbox expired-login regression fix merged)
 - **COMPLETE:** sandbox expired-login regression fix merged — lib-acg merge commit `83bea63` on `feat/v0.1.4`; `docs/bugs/2026-06-09-acg-sandbox-expired-login-redirect.md` records the stale Hands-on retry hop that can redirect an expired ACG sandbox into `/id` or the login page, and `playwright/lib/sandbox.js` now retries directly to `targetUrl` and fails fast if the resumed session lands on `/id`, `sign-in`, or `login` instead of continuing through the old Hands-on recovery route.
 
