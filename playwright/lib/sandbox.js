@@ -1,3 +1,9 @@
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const SCREENSHOT_DIR = path.join(os.homedir(), '.local', 'share', 'k3d-manager', 'screenshots');
+
 async function findOrCreatePage(context) {
   const allPages = context.pages();
   let page = allPages.find(p => {
@@ -157,7 +163,7 @@ async function _dismissExtendYourSessionDialog(page) {
 
 async function _capturePageDebugState(page, label, reason) {
   const safeLabel = String(label || 'page').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const screenshotPath = `/tmp/k3dm-${safeLabel}-${Date.now()}.png`;
+  const screenshotPath = path.join(SCREENSHOT_DIR, `k3dm-${safeLabel}-${Date.now()}.png`);
   let currentUrl = '';
   let visibleText = '';
 
@@ -169,6 +175,7 @@ async function _capturePageDebugState(page, label, reason) {
   }
 
   try {
+    await fs.promises.mkdir(SCREENSHOT_DIR, { recursive: true });
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.error(`INFO: Screenshot saved to ${screenshotPath}`);
   } catch (error) {

@@ -1,7 +1,18 @@
+const os = require('os');
+const path = require('path');
+const mockScreenshotPath = path.join(
+  os.homedir(),
+  '.local',
+  'share',
+  'k3d-manager',
+  'screenshots',
+  'k3dm-azure-123.png',
+);
+
 jest.mock('../../playwright/lib/sandbox', () => ({
   _findScopedButton: jest.fn(),
   _capturePageDebugState: jest.fn().mockResolvedValue({
-    screenshotPath: '/tmp/k3dm-azure-123.png',
+    screenshotPath: mockScreenshotPath,
     currentUrl: 'https://portal.azure.com/#@realhandsonlabs.com/resource/subscriptions/9734ed68-621d-47ed-babd-269110dbacb1/resourceGroups/1-5dfde6f5-playground-sandbox/overview',
     visibleText: 'Azure portal snapshot',
   }),
@@ -27,7 +38,7 @@ describe('azure provider extraction', () => {
     jest.clearAllMocks();
     _findScopedButton.mockReset();
     _capturePageDebugState.mockResolvedValue({
-      screenshotPath: '/tmp/k3dm-azure-123.png',
+      screenshotPath: mockScreenshotPath,
       currentUrl: 'https://portal.azure.com/#@realhandsonlabs.com/resource/subscriptions/9734ed68-621d-47ed-babd-269110dbacb1/resourceGroups/1-5dfde6f5-playground-sandbox/overview',
       visibleText: 'Azure portal snapshot',
     });
@@ -58,7 +69,7 @@ describe('azure provider extraction', () => {
       AZURE_SUBSCRIPTION_ID: '9734ed68-621d-47ed-babd-269110dbacb1',
       AZURE_TENANT_ID: '84f1e4ea-8554-43e1-8709-f0b8589ea118',
       AZURE_RESOURCE_GROUP: '1-5dfde6f5-playground-sandbox',
-      AZURE_SCREENSHOT_PATH: '/tmp/k3dm-azure-123.png',
+      AZURE_SCREENSHOT_PATH: mockScreenshotPath,
       AZURE_PORTAL_URL: 'https://portal.azure.com/#@realhandsonlabs.com/resource/subscriptions/9734ed68-621d-47ed-babd-269110dbacb1/resourceGroups/1-5dfde6f5-playground-sandbox/overview',
     });
     expect(_capturePageDebugState).toHaveBeenCalledTimes(1);
