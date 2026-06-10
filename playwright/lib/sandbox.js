@@ -158,6 +158,7 @@ async function _dismissExtendYourSessionDialog(page) {
 async function _waitForCredentials(page, providerLabel) {
   console.error(`INFO: Waiting for ${providerLabel} credentials to populate (up to 420s)...`);
   const deadline = Date.now() + 420000;
+  let reopenAttempted = false;
   while (Date.now() < deadline) {
     await _dismissExtendYourSessionDialog(page);
     const inputs = page.locator('input[aria-label="Copyable input"]');
@@ -202,8 +203,14 @@ async function _waitForCredentials(page, providerLabel) {
     }
     const reopenBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 0);
     if (reopenBtn) {
+      if (reopenAttempted) {
+        throw new Error(`${providerLabel} panel stayed closed after reopen attempt — aborting instead of looping for 420s.`);
+      }
       console.error(`INFO: ${providerLabel} panel closed — re-opening to retrieve credentials...`);
       await reopenBtn.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(3000);
+      reopenAttempted = true;
+      continue;
     }
     await page.waitForTimeout(2000);
   }
