@@ -469,13 +469,40 @@ async function startSandbox(page, targetUrl, provider) {
     await openButton.click({ force: true });
     await page.waitForTimeout(3000);
 
-    const conflictWarning = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('*'))
-        .some(el => (el.innerText || '').includes('You may have only one active sandbox at a time'))
-    ).catch(() => false);
-    if (conflictWarning) {
-      console.error('WARN: Conflict warning still visible after Open Sandbox — retrying conflict deletion...');
-      await _deleteConflictingSandbox(page, provider);
+    const conflictWarningText = await page.evaluate(() => {
+      const el = Array.from(document.querySelectorAll('*'))
+        .find(el => (el.innerText || '').includes('You may have only one active sandbox at a time'));
+      return el ? (el.innerText || '') : '';
+    }).catch(() => '');
+    if (conflictWarningText) {
+      const _conflictMatch = conflictWarningText.match(/shut down your current ([A-Za-z ]+?) sandbox/i);
+      const _conflictingProvider = _conflictMatch ? _conflictMatch[1].trim() : null;
+      console.error(`WARN: Conflict warning detected — conflicting provider: ${_conflictingProvider || 'unknown'}`);
+      await _closeOpenPanel(page, providerLabel);
+      if (_conflictingProvider) {
+        let _conflictDeleteBtn = await _findScopedButton(page, 'Delete Sandbox', _conflictingProvider, 2000);
+        if (!_conflictDeleteBtn) {
+          const _conflictOpenBtn = await _findScopedButton(page, 'Open Sandbox', _conflictingProvider, 5000);
+          if (_conflictOpenBtn) {
+            await _conflictOpenBtn.click({ force: true });
+            _conflictDeleteBtn = await _findScopedButton(page, 'Delete Sandbox', _conflictingProvider, 15000);
+          }
+        }
+        if (_conflictDeleteBtn) {
+          await _conflictDeleteBtn.scrollIntoViewIfNeeded().catch(() => {});
+          await _conflictDeleteBtn.click({ force: true });
+          await page.waitForTimeout(1500);
+          const _conflictConfirm = page.locator('[role="alertdialog"] button', { hasText: /delete sandbox/i });
+          if (await _conflictConfirm.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await _conflictConfirm.click({ force: true });
+          }
+          console.error(`INFO: Waiting for ${_conflictingProvider} sandbox deletion (up to 180s)...`);
+          await _findScopedButton(page, 'Start Sandbox', _conflictingProvider, 180000);
+          await _closeOpenPanel(page, _conflictingProvider);
+        } else {
+          console.error(`WARN: Could not find Delete Sandbox for ${_conflictingProvider} — proceeding anyway`);
+        }
+      }
       const retryOpen = await _findScopedButton(page, 'Open Sandbox', providerLabel, 10000);
       if (retryOpen) {
         await retryOpen.click({ force: true });
