@@ -246,6 +246,15 @@ async function _waitForCredentials(page, providerLabel) {
     }
     const reopenBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 0);
     if (reopenBtn) {
+      const provisioning = await page.evaluate(() => {
+        const t = document.body ? (document.body.innerText || '') : '';
+        return t.includes('Hang tight') || t.includes('Finalizing your playground');
+      }).catch(() => false);
+      if (provisioning) {
+        console.error(`INFO: ${providerLabel} sandbox is provisioning — waiting before reopening panel...`);
+        await page.waitForTimeout(5000);
+        continue;
+      }
       if (reopenAttempted) {
         await _capturePageDebugState(page, providerLabel, `${providerLabel} panel stayed closed after reopen attempt — aborting instead of looping for 420s.`);
         throw new Error(`${providerLabel} panel stayed closed after reopen attempt — aborting instead of looping for 420s.`);
