@@ -2,6 +2,7 @@
 
 ## v0.1.5 Track — `feat/v0.1.5` (ACTIVE)
 - Retrospective written; memory-bank updated; next planning cycle open.
+- **COMPLETE:** Azure SP login persistence — lib-acg commit `37f0cc0` on `feat/v0.1.5`; spec: `docs/plans/v0.1.5-bugfix-azure-persist-login.md`; `bin/acg-credential-test` now writes validated Azure service-principal credentials into `~/.azure` after a successful `az login --service-principal` probe so downstream callers retain a usable Azure CLI session; validation used `shellcheck -S warning bin/acg-credential-test` and `git diff --check -- bin/acg-credential-test`; commit message: `fix(credentials): persist az login to ~/.azure after SP validation`
 
 ## v0.4.0 Track — `main` (SHIPPED)
 - **COMPLETE:** v0.4.0 post-merge housekeeping — tag `v0.4.0` created and pushed (`adafde3c`); GitHub release created; `feat/v0.1.5` branch created from merge SHA; retrospective written to `docs/retro/2026-06-10-v0.4.0-retrospective.md`; memory-bank updated; enforce_admins re-enabled on main.
