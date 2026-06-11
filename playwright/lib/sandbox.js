@@ -391,14 +391,7 @@ async function startSandbox(page, targetUrl, provider) {
   await page.addLocatorHandler(
     page.locator('h3, h2').filter({ hasText: /sandbox has been extended|session extended/i }).first(),
     async () => {
-      const closeBtn = page.locator(
-        'button[aria-label="close"], button[aria-label="Close"], button[aria-label="Dismiss"]'
-      ).first();
-      if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await closeBtn.click({ force: true }).catch(() => {});
-      } else {
-        await page.keyboard.press('Escape').catch(() => {});
-      }
+      await page.keyboard.press('Escape').catch(() => {});
       await page.waitForTimeout(800);
       // If the toast dismissal closed the credential panel, re-open it
       const inputsVisible = await page.locator('input[aria-label="Copyable input"]').first().isVisible({ timeout: 500 }).catch(() => false);
