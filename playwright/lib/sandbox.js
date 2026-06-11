@@ -405,7 +405,7 @@ async function startSandbox(page, targetUrl, provider) {
 
   console.error(`INFO: Looking for ${providerLabel} sandbox buttons...`);
   await page.addLocatorHandler(
-    page.locator('text=/sandbox has been extended|session extended/i'),
+    page.locator('h3, h2').filter({ hasText: /sandbox has been extended|session extended/i }).first(),
     async () => {
       const closeBtn = page.locator(
         'button[aria-label="close"], button[aria-label="Close"], button[aria-label="Dismiss"]'
