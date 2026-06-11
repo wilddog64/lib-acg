@@ -227,7 +227,7 @@ fix(credential-test): automate device code sign-in via CDP — replace manual br
 
 ## What NOT to Do
 
-- Do NOT create a PR
+- Do NOT create a PR yourself — Claude handles PR creation after verifying the commit
 - Do NOT skip pre-commit hooks (`--no-verify`)
 - Do NOT add `AZURE_CONFIG_DIR` to the device code `az login` or `az account get-access-token` calls
 - Do NOT commit to `main` — work on `feat/v0.1.5`

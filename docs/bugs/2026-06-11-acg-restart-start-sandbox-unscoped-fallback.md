@@ -122,7 +122,7 @@ fix(restart): add unscoped Start Sandbox fallback for detached panel overlay
 
 ## What NOT to Do
 
-- Do NOT create a PR
+- Do NOT create a PR yourself — Claude handles PR creation after verifying the commit
 - Do NOT skip pre-commit hooks (`--no-verify`)
 - Do NOT modify any file other than `playwright/acg_restart.js`
 - Do NOT commit to `main` — work on `feat/v0.1.5`

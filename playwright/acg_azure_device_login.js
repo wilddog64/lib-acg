@@ -25,7 +25,7 @@ async function main() {
     const codeInput = page.locator('input[name="otc"]').first();
     await codeInput.waitFor({ state: 'visible', timeout: 15000 });
     await codeInput.fill(deviceCode);
-    console.error(`INFO: Filled device code: ${deviceCode}`);
+    console.error('INFO: Filled device code.');
 
     await page.locator('input[type="submit"]').first().click();
     await page.waitForTimeout(2000);
