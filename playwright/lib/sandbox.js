@@ -345,20 +345,33 @@ async function _deleteConflictingSandbox(page, targetProvider) {
 
   if (!conflictingLabel) return;
 
-  // If the conflicting panel is already open in "Start Sandbox" state (not running —
-  // no Delete Sandbox button), just close it and return. Nothing to delete.
-  const panelInStartState = await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll('button'));
-    const hasStart = btns.some(b => (b.innerText || '').trim() === 'Start Sandbox' && !b.disabled);
-    const hasDelete = btns.some(b => (b.innerText || '').includes('Delete Sandbox'));
-    const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
-    return hasStart && !hasDelete && inputs.length > 0;
-  }).catch(() => false);
+  // If ACG shows the "only one active sandbox" warning naming the conflicting provider,
+  // the sandbox IS running — skip the Start Sandbox state heuristic and delete.
+  const conflictWarningActive = await page.evaluate((cLabel) => {
+    return Array.from(document.querySelectorAll('*'))
+      .some(el => {
+        const t = el.innerText || '';
+        return t.includes('You may have only one active sandbox at a time') &&
+               t.toLowerCase().includes(cLabel.toLowerCase());
+      });
+  }, conflictingLabel).catch(() => false);
 
-  if (panelInStartState) {
-    console.error(`INFO: ${conflictingLabel} panel open in Start Sandbox state (not running) — closing panel...`);
-    await _closeOpenPanel(page, conflictingLabel);
-    return;
+  if (!conflictWarningActive) {
+    // If the conflicting panel is already open in "Start Sandbox" state (not running —
+    // no Delete Sandbox button), just close it and return. Nothing to delete.
+    const panelInStartState = await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const hasStart = btns.some(b => (b.innerText || '').trim() === 'Start Sandbox' && !b.disabled);
+      const hasDelete = btns.some(b => (b.innerText || '').includes('Delete Sandbox'));
+      const inputs = document.querySelectorAll('input[aria-label="Copyable input"]');
+      return hasStart && !hasDelete && inputs.length > 0;
+    }).catch(() => false);
+
+    if (panelInStartState) {
+      console.error(`INFO: ${conflictingLabel} panel open in Start Sandbox state (not running) — closing panel...`);
+      await _closeOpenPanel(page, conflictingLabel);
+      return;
+    }
   }
 
   console.error(`INFO: Running ${conflictingLabel} sandbox detected — deleting before starting ${targetLabel}...`);
