@@ -213,16 +213,17 @@ async function _waitForCredentials(page, providerLabel) {
         Array.from({ length: inputCount }, (_, i) => inputs.nth(i).inputValue().catch(() => ''))
       );
       if (vals.every(v => v.trim().length > 0)) return;
-      if (partialCredsFirstSeen === 0) partialCredsFirstSeen = Date.now();
+      if (partialCredsFirstSeen === 0 && vals.some(v => v.trim().length > 0)) partialCredsFirstSeen = Date.now();
       if (
         providerLabel === 'Azure' &&
+        partialCredsFirstSeen > 0 &&
         Date.now() - partialCredsFirstSeen > 60000 &&
         deleteCycleCount < 3
       ) {
-        deleteCycleCount++;
-        console.error(`INFO: Azure SP credentials not populated after 60s — deleting sandbox and starting fresh (cycle ${deleteCycleCount}/3)...`);
         const deleteBtn = await _findScopedButton(page, 'Delete Sandbox', providerLabel, 5000);
         if (deleteBtn) {
+          deleteCycleCount++;
+          console.error(`INFO: Azure SP credentials not populated after 60s — deleting sandbox and starting fresh (cycle ${deleteCycleCount}/3)...`);
           await deleteBtn.click({ force: true }).catch(() => {});
           const confirmBtn = page.locator('[role="alertdialog"] button', { hasText: /delete sandbox/i }).first();
           if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
