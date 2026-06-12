@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+- `playwright/lib/sandbox.js`: replace `reopenAttempted` boolean with `reopenCount` counter — allow 3 reopen attempts with 8s wait per attempt; single 3s attempt was too tight for Azure panel render after click
+- `playwright/lib/sandbox.js`: delete+restart Azure sandbox when SP credentials (Application Client ID / Secret) remain empty after 60s — up to 3 delete+restart cycles; fixes chronic manual retry required when sandbox provisions without service principal credentials
+
 ## [0.1.5] - 2026-06-11
 
 ### Fixed
