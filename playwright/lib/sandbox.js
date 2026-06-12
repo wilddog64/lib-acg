@@ -201,7 +201,7 @@ async function _capturePageDebugState(page, label, reason) {
 async function _waitForCredentials(page, providerLabel) {
   console.error(`INFO: Waiting for ${providerLabel} credentials to populate (up to 420s)...`);
   const deadline = Date.now() + 420000;
-  let reopenAttempted = false;
+  let reopenCount = 0;
   while (Date.now() < deadline) {
     await _dismissExtendYourSessionDialog(page);
     const inputs = page.locator('input[aria-label="Copyable input"]');
@@ -255,14 +255,14 @@ async function _waitForCredentials(page, providerLabel) {
         await page.waitForTimeout(5000);
         continue;
       }
-      if (reopenAttempted) {
-        await _capturePageDebugState(page, providerLabel, `${providerLabel} panel stayed closed after reopen attempt — aborting instead of looping for 420s.`);
-        throw new Error(`${providerLabel} panel stayed closed after reopen attempt — aborting instead of looping for 420s.`);
+      if (reopenCount >= 3) {
+        await _capturePageDebugState(page, providerLabel, `${providerLabel} panel stayed closed after ${reopenCount} reopen attempts — aborting.`);
+        throw new Error(`${providerLabel} panel stayed closed after ${reopenCount} reopen attempts — aborting.`);
       }
-      console.error(`INFO: ${providerLabel} panel closed — re-opening to retrieve credentials...`);
+      reopenCount++;
+      console.error(`INFO: ${providerLabel} panel closed — re-opening to retrieve credentials (attempt ${reopenCount})...`);
       await reopenBtn.click({ force: true }).catch(() => {});
-      await page.waitForTimeout(3000);
-      reopenAttempted = true;
+      await page.waitForTimeout(8000);
       continue;
     }
     await page.waitForTimeout(2000);
