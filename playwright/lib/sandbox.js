@@ -279,6 +279,8 @@ async function _waitForCredentials(page, providerLabel) {
         await page.waitForTimeout(5000);
         continue;
       }
+      await page.waitForTimeout(2000);
+      continue;
     }
     const reopenBtn = await _findScopedButton(page, 'Open Sandbox', providerLabel, 0);
     if (reopenBtn) {
@@ -401,6 +403,7 @@ async function _deleteConflictingSandbox(page, targetProvider) {
   if (!conflictingLabel) return;
 
   console.error(`INFO: Running ${conflictingLabel} sandbox detected — deleting before starting ${targetLabel}...`);
+  await _closeOpenPanel(page, targetLabel);
 
   let deleteBtn = await _findScopedButton(page, 'Delete Sandbox', conflictingLabel, 2000);
   if (!deleteBtn) {
