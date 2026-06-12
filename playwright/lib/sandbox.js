@@ -255,7 +255,7 @@ async function _waitForCredentials(page, providerLabel) {
         const btn = allStart.nth(i);
         const visible = await btn.isVisible({ timeout: 300 }).catch(() => false);
         if (!visible) continue;
-        const disabled = await btn.isDisabled().catch(() => false);
+        const disabled = await btn.isDisabled({ timeout: 300 }).catch(() => false);
         if (disabled) continue;
         const inTargetPanel = await btn.evaluate((el, pLabel) => {
           const others = ['AWS', 'Google Cloud', 'GCP', 'Azure'].filter(
