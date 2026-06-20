@@ -2,8 +2,9 @@
 
 ## Current Branch: `feat/v0.1.8`
 
-## Current Status (2026-06-12 — v0.1.6 + v0.1.7 released; Azure provision verified)
-- **COMPLETE:** v0.1.7 post-merge — PR #44 squash-merged to main (`f5e1f6a`): Azure SP validation restart (3b72a4a), conflict detection via banner text (b57131c), close-panel-before-delete + reopen fall-through (cdd9ba4), Copilot `isDisabled` 300ms timeout (87a7ff3). Tag `v0.1.7` + GitHub release (Latest) created. Issue doc `docs/issues/2026-06-12-copilot-pr44-review-findings.md`.
+## Current Status (2026-06-20 — Antigravity CLI migration planning active)
+- **COMPLETE (Antigravity, 2026-06-20):** Created task spec `docs/plans/v0.1.8-antigravity-migration.md` to migrate `gemini-cli` to `agy-cli` and refactor out the retired `--deny-tool`/`--allow-tool` flags in favor of `agy`'s centralized configuration and the `--dangerously-skip-permissions` flag for automated runs.
+- **PREVIOUS (2026-06-12 — v0.1.6 + v0.1.7 released; Azure provision verified):** v0.1.7 post-merge — PR #44 squash-merged to main (`f5e1f6a`): Azure SP validation restart (3b72a4a), conflict detection via banner text (b57131c), close-panel-before-delete + reopen fall-through (cdd9ba4), Copilot `isDisabled` 300ms timeout (87a7ff3). Tag `v0.1.7` + GitHub release (Latest) created. Issue doc `docs/issues/2026-06-12-copilot-pr44-review-findings.md`.
 - **COMPLETE:** v0.1.6 belatedly tagged — PR #43 (`696ca83`) merged without a tag; tag `v0.1.6` + release created this milestone. CHANGELOG split `[Unreleased]` → dated `[0.1.6]` + `[0.1.7]` on `feat/v0.1.8`.
 - **VERIFIED:** Azure sandbox provision succeeds end-to-end (user confirmed 2026-06-12). The Azure SP 5–6-cycle worst case did not recur.
 - enforce_admins restored on main ✓; `feat/v0.1.8` from `f5e1f6a`; retro `docs/retro/2026-06-12-v0.1.7-retrospective.md`.
