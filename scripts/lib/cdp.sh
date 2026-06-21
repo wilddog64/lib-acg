@@ -106,6 +106,12 @@ function _cdp_ensure_acg_session() {
   if [[ ! -r "${_acg_session_check_script}" ]]; then
     _err "Missing ACG session check script: ${_acg_session_check_script}"
   fi
+  if ! _command_exist node; then
+    _err "node is required for the ACG session check — install Node.js and retry"
+  fi
+  if [[ ! -d "${_LIB_ACG_ROOT}/node_modules/playwright" ]]; then
+    _err "playwright module not found under ${_LIB_ACG_ROOT}/node_modules — run 'npm install' in ${_LIB_ACG_ROOT}"
+  fi
 
   _info "Checking Pluralsight (ACG) session in Antigravity browser..."
   NODE_PATH="${_LIB_ACG_ROOT}/node_modules" node "${_acg_session_check_script}"

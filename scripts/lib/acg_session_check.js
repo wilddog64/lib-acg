@@ -37,11 +37,7 @@ async function _main() {
 
     const context = contexts[0];
     const pages = context.pages();
-    if (pages.length === 0) {
-      throw new Error('No browser page found in the existing CDP context');
-    }
-
-    const page = pages[0];
+    const page = pages.length > 0 ? pages[0] : await context.newPage();
 
     await page.goto(SANDBOX_URL, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
     if (await _pageLooksLoggedIn(page)) {
@@ -50,11 +46,16 @@ async function _main() {
     }
 
     console.error('ACTION REQUIRED: Please log into Pluralsight in the browser, then wait for the signin page to clear.');
-    await page.goto(SIGNIN_URL, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+    const reachedSignin = await page.goto(SIGNIN_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!reachedSignin) {
+      throw new Error('Failed to navigate to Pluralsight signin page');
+    }
 
     const deadline = Date.now() + LOGIN_TIMEOUT_MS;
     while (Date.now() < deadline) {
-      if (!page.url().includes('/signin')) {
+      if (!page.url().includes('/signin') && await _pageLooksLoggedIn(page)) {
         process.stdout.write('ACG_SESSION_OK\n');
         return;
       }
