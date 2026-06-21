@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- `scripts/lib/cdp.sh`: `_cdp_ensure_acg_session` now runs a deterministic Playwright session check (`scripts/lib/acg_session_check.js`) over CDP instead of the retired gemini-cli agent prompt; `_browser_launch` probe message reworded from "Gemini" to "Antigravity". gemini-cli was retired by Google (replaced by the Antigravity `agy` CLI), so the old `_gemini_prompt ... --yolo` path was dead.
+
+### Added
+- `scripts/lib/acg_session_check.js`: standalone Playwright script that connects to the existing CDP browser, reuses the first context/page, verifies the Pluralsight (ACG) session, prints `ACG_SESSION_OK` on success, and never closes the shared browser.
+
 ## [0.1.7] - 2026-06-12
 
 ### Fixed
