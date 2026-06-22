@@ -5,11 +5,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-06-21
+
+### Fixed
+- `playwright/acg_restart.js`: Start Sandbox click no longer fails with `locator.click: Element is outside of the viewport`. Added `_robustClick` (centers the element via `scrollIntoView({block:'center'})` and dispatches a bubbling DOM `MouseEvent`, viewport-independent — the same technique already used for the Delete confirmation) and applied it to all three Start Sandbox click sites. Recurrence of the v0.1.3 fix, which used `scrollIntoViewIfNeeded()` + `{force:true}` — insufficient because `force` bypasses actionability but not the viewport requirement. Verified live via `make credential-test PROVIDER=aws`.
+
+## [0.1.8] - 2026-06-21
+
 ### Changed
 - `scripts/lib/cdp.sh`: `_cdp_ensure_acg_session` now runs a deterministic Playwright session check (`scripts/lib/acg_session_check.js`) over CDP instead of the retired gemini-cli agent prompt; `_browser_launch` probe message reworded from "Gemini" to "Antigravity". gemini-cli was retired by Google (replaced by the Antigravity `agy` CLI), so the old `_gemini_prompt ... --yolo` path was dead.
 
 ### Added
 - `scripts/lib/acg_session_check.js`: standalone Playwright script that connects to the existing CDP browser, reuses the first context/page, verifies the Pluralsight (ACG) session, prints `ACG_SESSION_OK` on success, and never closes the shared browser.
+
+### Fixed
+- `scripts/lib/acg_session_check.js`: require both a successful signin navigation and a visible logged-in selector before printing `ACG_SESSION_OK` (closes a false-positive seam); create a page when the CDP context has no open tabs instead of throwing (Copilot PR #45).
+- `scripts/lib/cdp.sh`: add `node` and `node_modules/playwright` preflight checks with actionable `_err` messages before invoking the session check (Copilot PR #45).
 
 ## [0.1.7] - 2026-06-12
 
