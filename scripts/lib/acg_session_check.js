@@ -14,6 +14,7 @@ const LOGIN_SELECTORS = [
   '[aria-label="User menu"]',
   '[aria-label*="account" i]',
   'img[alt*="avatar" i]',
+  '.psPrismAvatar .psPrismMonogram[aria-label]',
   'text=/Cloud Sandboxes/i',
 ];
 
@@ -38,6 +39,11 @@ async function _main() {
     const context = contexts[0];
     const pages = context.pages();
     const page = pages.length > 0 ? pages[0] : await context.newPage();
+
+    if (await _pageLooksLoggedIn(page)) {
+      process.stdout.write('ACG_SESSION_OK\n');
+      return;
+    }
 
     await page.goto(SANDBOX_URL, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
     if (await _pageLooksLoggedIn(page)) {
