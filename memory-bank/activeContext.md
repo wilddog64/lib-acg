@@ -1,5 +1,8 @@
 # Active Context — lib-acg
 
+## Current Status (2026-07-30 — Pluralsight session detector regression fixed)
+- **COMPLETE:** `fix/acg-session-profile-selector` commit `7ffdd5f` detects the current signed-in Pluralsight Prism avatar (`.psPrismAvatar .psPrismMonogram[aria-label]`) before it navigates the CDP page. This fixes the false `Pluralsight login timeout` reported by `make credential-test PROVIDER=aws` for an already authenticated session. Bug record: `docs/bugs/2026-07-30-acg-session-check-current-profile-ui.md`. Live CDP check printed `ACG_SESSION_OK`; `node --check scripts/lib/acg_session_check.js` and `npm test -- --runInBand` passed (3 suites, 10 tests). Pushed to `origin/fix/acg-session-profile-selector`; no PR created per repository policy.
+
 ## Current Branch: `feat/v0.1.8`
 
 ## Current Status (2026-06-20 — Antigravity CLI migration planning active)
