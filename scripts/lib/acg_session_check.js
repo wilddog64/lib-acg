@@ -19,6 +19,10 @@ const LOGIN_SELECTORS = [
 ];
 
 async function _pageLooksLoggedIn(page) {
+  if (!page.url().startsWith('https://app.pluralsight.com/')) {
+    return false;
+  }
+
   for (const selector of LOGIN_SELECTORS) {
     const locator = page.locator(selector).first();
     if (await locator.isVisible({ timeout: 1500 }).catch(() => false)) {

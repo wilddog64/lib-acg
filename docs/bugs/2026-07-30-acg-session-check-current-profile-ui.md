@@ -30,7 +30,7 @@ title: Home | Pluralsight
 Its profile control is rendered as:
 
 ```html
-<div class="psPrismMonogram" aria-label="ckm.liang gmail.com">CG</div>
+<div class="psPrismMonogram" aria-label="user@example.com">CG</div>
 ```
 
 ## Root cause
